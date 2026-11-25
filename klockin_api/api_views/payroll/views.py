@@ -457,9 +457,9 @@ from datetime import datetime
 from django.conf import settings
 from django.http import Http404, HttpResponse
 from django.shortcuts import get_object_or_404
-from django.template.loader import render_to_string
 from rest_framework import status
 from rest_framework.authentication import SessionAuthentication
+from rest_framework.negotiation import DefaultContentNegotiation
 
 # DRF / Simple JWT imports
 from rest_framework.permissions import IsAuthenticated
@@ -471,14 +471,22 @@ from klockin_api.authentication import TenantScopedJWTAuthentication
 from payroll.models.models import Company, EmployeeWorkInformation
 from payroll.models.tax_models import PayrollSettings
 from payroll.views.component_views import filter_payslip
-from payroll.views.views import equalize_lists_length
+from payroll.views.views import equalize_lists_length, generate_payslip_pdf
 
-try:
-    import pdfkit
 
-    HAVE_PDFKIT = True
-except Exception:
-    HAVE_PDFKIT = False
+def _wants_payslip_pdf(request):
+    requested = request.query_params.get("format", "").lower()
+    if requested:
+        return requested == "pdf"
+    accept = request.headers.get("Accept", "")
+    return any(item.partition(";")[0].strip() == "application/pdf" for item in accept.split(","))
+
+
+class PayslipContentNegotiation(DefaultContentNegotiation):
+    def select_renderer(self, request, renderers, format_suffix=None):
+        if _wants_payslip_pdf(request):
+            return renderers[0], renderers[0].media_type
+        return super().select_renderer(request, renderers, format_suffix)
 
 
 class PayslipPDFAPIView(APIView):
@@ -491,6 +499,7 @@ class PayslipPDFAPIView(APIView):
 
     authentication_classes = (TenantScopedJWTAuthentication, SessionAuthentication)
     permission_classes = (IsAuthenticated,)
+    content_negotiation_class = PayslipContentNegotiation
 
     def get(self, request, id, format=None):
         # get payslip or 404
@@ -583,44 +592,9 @@ class PayslipPDFAPIView(APIView):
         data["protocol"] = "https" if request.is_secure() else "http"
         data["company"] = Company.objects.filter(hq=True).first()
 
-        # render HTML string using template
-        html = render_to_string(
-            "payroll/payslip/payslip_pdf.html", context=data, request=request
+        return generate_payslip_pdf(
+            "payroll/payslip/payslip_pdf.html",
+            data,
+            html=not _wants_payslip_pdf(request),
+            filename=f"payslip-{id}.pdf",
         )
-
-        # If client asked for PDF and pdfkit is available -> return PDF
-        requested_format = request.GET.get("format", "").lower()
-        if requested_format == "pdf":
-            if not HAVE_PDFKIT:
-                return Response(
-                    {
-                        "detail": _(
-                            "PDF generation not available on server. Install pdfkit/wkhtmltopdf."
-                        )
-                    },
-                    status=status.HTTP_503_SERVICE_UNAVAILABLE,
-                )
-            try:
-                # optional: configure pdfkit with path if needed
-                pdf_options = {
-                    "enable-local-file-access": None,  # if your template references local CSS
-                }
-                from base.methods import pdfkit_configuration
-
-                pdf_bytes = pdfkit.from_string(
-                    html,
-                    False,
-                    options=pdf_options,
-                    configuration=pdfkit_configuration(),
-                )
-                response = HttpResponse(pdf_bytes, content_type="application/pdf")
-                response["Content-Disposition"] = f'inline; filename="payslip-{id}.pdf"'
-                return response
-            except Exception as e:
-                return Response(
-                    {"detail": f"PDF generation failed: {str(e)}"},
-                    status=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                )
-
-        # default: return rendered HTML (use HttpResponse so browser sees it nicely)
-        return HttpResponse(html)

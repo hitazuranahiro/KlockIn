@@ -3,19 +3,16 @@ import calendar
 import contextlib
 import json
 import logging
-import os
 import random
 import re
 from datetime import date, datetime, time, timedelta
 from types import SimpleNamespace
 
 import pandas as pd
-import pdfkit
 from django import template
 from django.apps import apps
 from django.conf import settings
 from django.contrib.auth.models import Group
-from django.contrib.staticfiles import finders
 from django.core.exceptions import FieldDoesNotExist, ObjectDoesNotExist
 from django.core.paginator import Paginator
 from django.db import models
@@ -28,6 +25,7 @@ from django.template.loader import render_to_string
 from django.utils.translation import gettext as _
 
 from klockin.models import has_xss
+from klockin.pdf import document_pdf
 
 logger = logging.getLogger(__name__)
 
@@ -1390,118 +1388,8 @@ def check_owner(employee, instance):
         return False
 
 
-def link_callback(uri, rel):
-    """
-    Convert HTML URIs to absolute system paths so xhtml2pdf can access those
-    resources
-    """
-    if settings.KLOCKIN_UPLOAD_STORAGE == "s3" and uri.startswith(settings.MEDIA_URL):
-        from klockin.uploaded_files import uploaded_image_url_source
-
-        return uploaded_image_url_source(uri) or uri
-    if not uri.startswith("/static"):
-        return uri
-    uri = "payroll/fonts/Poppins_Regular.ttf"
-    result = finders.find(uri)
-    if result:
-        if not isinstance(result, (list, tuple)):
-            result = [result]
-
-        result = list(os.path.realpath(path) for path in result)
-        path = result[0]
-
-    else:
-        sUrl = settings.STATIC_URL
-        sRoot = settings.STATIC_ROOT
-        mUrl = settings.MEDIA_URL
-        mRoot = settings.MEDIA_ROOT
-
-        if uri.startswith(sUrl):
-            path = os.path.join(sRoot, uri.replace(sUrl, ""))
-        else:
-            return uri
-
-    if os.name == "nt":
-        return uri
-
-    if not os.path.isfile(path):
-        raise RuntimeError("media URI must start with %s or %s" % (sUrl, mUrl))
-    return path
-
-
-# def generate_pdf(template_path, context, path=True, title=None, html=True):
-#     template_path = template_path
-#     context_data = context
-#     title = (
-#         f"""{context_data.get("employee")}'s payslip for {context_data.get("range")}.pdf"""
-#         if not title
-#         else title
-#     )
-#     response = HttpResponse(content_type="application/pdf")
-#     response["Content-Disposition"] = f"attachment; filename={title}"
-
-#     if html:
-#         html = template_path
-#     else:
-#         template = get_template(template_path)
-#         html = template.render(context_data)
-
-#     pisa_status = pisa.CreatePDF(
-#         html.encode("utf-8"),
-#         dest=response,
-#         link_callback=link_callback,
-#     )
-
-#     if pisa_status.err:
-#         return HttpResponse("We had some errors <pre>" + html + "</pre>")
-
-#     return response
-
-
-def pdfkit_configuration():
-    """
-    pdfkit pointed at wkhtmltopdf, found even when it is not on PATH.
-
-    pdfkit looks the program up on PATH (``where`` on Windows) and fails with
-    'No wkhtmltopdf executable found: b""' when the installer did not add it, as the
-    Windows installer by default does not. WKHTMLTOPDF_PATH, then the usual
-    install folders, are tried before leaving it to pdfkit's own search.
-    """
-    import os
-    import shutil
-
-    candidates = [
-        os.environ.get("WKHTMLTOPDF_PATH"),
-        shutil.which("wkhtmltopdf"),
-        "C:/Program Files/wkhtmltopdf/bin/wkhtmltopdf.exe",
-        "C:/Program Files (x86)/wkhtmltopdf/bin/wkhtmltopdf.exe",
-        "/usr/local/bin/wkhtmltopdf",
-        "/usr/bin/wkhtmltopdf",
-    ]
-    for path in candidates:
-        if path and os.path.isfile(path):
-            return pdfkit.configuration(wkhtmltopdf=path)
-    return None
-
-
 def generate_pdf(template_path, context, path=True, title=None, html=True):
-    """
-    Render HTML to a PDF response.
-
-    The rendered body is XSS-checked before it reaches pdfkit. wkhtmltopdf
-    executes scripts in the document, and every call site here passes
-    `enable-local-file-access` (see template_pdf's pdf_options, where it is
-    needed to load local CSS and images). pdfkit 1.0.0 has a known,
-    currently-unfixed advisory for exactly that combination -- PYSEC-2026-2860:
-    `from_string` allows script execution and local-file exfiltration -- so a
-    template carrying an injected payload could read files off the server and
-    post them out.
-
-    klockin_automations/signals.py already did this check at its own call site.
-    Four other callers (recruitment, attendance API, employee dashboard,
-    onboarding) did not, so the guard belongs here, where all five route
-    through, rather than repeated at each one.
-    """
+    """Render saved document templates after checking their markup."""
     title = "Document" if not title else title
 
     if html:
@@ -1511,17 +1399,16 @@ def generate_pdf(template_path, context, path=True, title=None, html=True):
 
     if has_xss(html):
         logger.error(
-            "generate_pdf: rendered body failed the XSS check; refusing to "
-            "hand it to wkhtmltopdf (title=%s).",
+            "generate_pdf: rendered document failed the markup check (title=%s).",
             title,
         )
         return HttpResponse(
             _("This document could not be generated safely."), status=400
         )
 
-    response = template_pdf(template=html, html=True, filename=title)
-
-    return response
+    request = getattr(_thread_locals, "request", None)
+    host = request.get_host() if request else None
+    return document_pdf(html, title, host=host)
 
 
 def get_session_company(request):
@@ -1876,49 +1763,6 @@ def check_chart_permission(request, charts):
         return not perm
 
     return [chart for chart in charts if has_chart_access(chart[0])]
-
-
-def template_pdf(template, context={}, html=False, filename="payslip.pdf"):
-    """
-    Generate a PDF file from an HTML template and context data.
-
-    Args:
-        template_path (str): The path to the HTML template.
-        context (dict): The context data to render the template.
-        html (bool): If True, return raw HTML instead of a PDF.
-
-    Returns:
-        HttpResponse: A response with the generated PDF file or raw HTML.
-    """
-    try:
-        bootstrap_css = '<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">'
-        html_content = f"{bootstrap_css}\n{template}"
-
-        pdf_options = {
-            "page-size": "A4",
-            "margin-top": "10mm",
-            "margin-bottom": "10mm",
-            "margin-left": "10mm",
-            "margin-right": "10mm",
-            "encoding": "UTF-8",
-            "enable-local-file-access": None,
-            "dpi": 300,
-            "zoom": 1.3,
-            "footer-center": "[page]/[topage]",
-        }
-
-        pdf = pdfkit.from_string(
-            html_content,
-            False,
-            options=pdf_options,
-            configuration=pdfkit_configuration(),
-        )
-
-        response = HttpResponse(pdf, content_type="application/pdf")
-        response["Content-Disposition"] = f"inline; filename={filename}"
-        return response
-    except Exception as e:
-        return HttpResponse(f"Error generating PDF: {str(e)}", status=500)
 
 
 def generate_otp():

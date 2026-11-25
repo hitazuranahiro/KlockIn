@@ -11,7 +11,6 @@ from itertools import groupby
 from urllib.parse import parse_qs
 
 import pandas as pd
-import pdfkit
 from django.conf import settings as pay_settings
 from django.contrib import messages
 from django.db.models import ProtectedError, Q
@@ -37,6 +36,7 @@ from base.methods import (
 )
 from base.models import Company
 from employee.models import Employee, EmployeeWorkInformation
+from klockin.pdf import document_pdf
 from klockin.decorators import (
     hx_request_required,
     login_required,
@@ -1511,82 +1511,11 @@ def equalize_lists_length(allowances, deductions):
     return deductions, allowances
 
 
-def generate_payslip_pdf(template_path, context, html=False):
-    """
-    Generate a PDF file from an HTML template and context data.
-
-    Args:
-        template_path (str): The path to the HTML template.
-        context (dict): The context data to render the template.
-        html (bool): If True, return raw HTML instead of a PDF.
-
-    Returns:
-        HttpResponse: A response with the generated PDF file or raw HTML.
-    """
-
-    from klockin.klockin_middlewares import _thread_locals
-
-    try:
-        # Render the HTML content from the template and context
-        html_content = render_to_string(template_path, context)
-        request = getattr(_thread_locals, "request")
-        cookies = None
-        if request:
-            cookies = request.META.get("HTTP_COOKIE", "")
-
-        # Return raw HTML if requested
-        if html:
-            return HttpResponse(html_content, content_type="text/html")
-
-        # PDF options for pdfkit
-        pdf_options = {
-            "page-size": "A4",
-            "margin-top": "10mm",
-            "margin-bottom": "10mm",
-            "margin-left": "10mm",
-            "margin-right": "10mm",
-            "encoding": "UTF-8",
-            "enable-local-file-access": None,  # Required to load local CSS/images
-            "dpi": 300,
-            # 1.0, not the 1.3 the old, taller design needed: this layout is
-            # already compact (12.5px base, tight table rows), and the extra
-            # scale was pushing a near-empty second page past the A4 break.
-            "zoom": 1.0,
-            "footer-center": "[page]/[topage]",  # Required to load local CSS/images
-        }
-
-        if cookies:
-            pdf_options.update(
-                {
-                    "custom-header": [
-                        ("Cookie", cookies),
-                    ],
-                    "custom-header-propagation": None,
-                }
-            )
-
-        # Generate the PDF as binary content
-        from base.methods import pdfkit_configuration
-
-        pdf = pdfkit.from_string(
-            html_content,
-            False,
-            options=pdf_options,
-            configuration=pdfkit_configuration(),
-        )
-
-        # Return an HttpResponse containing the PDF content
-        response = HttpResponse(pdf, content_type="application/pdf")
-        response["Content-Disposition"] = "inline; filename=payslip.pdf"
-        # Every payslip is served from the same URL shape (no per-render
-        # query string/ETag), so without this the browser can reuse a
-        # previously cached PDF -- stale company/logo info included -- for
-        # what looks like a fresh request.
-        response["Cache-Control"] = "no-store, no-cache, must-revalidate"
-        return response
-    except Exception as e:
-        # Handle errors gracefully
-        return HttpResponse(f"Error generating PDF: {str(e)}", status=500)
+def generate_payslip_pdf(template_path, context, html=False, filename="payslip.pdf"):
+    markup = render_to_string(template_path, {**context, "pdf_output": not html})
+    if html:
+        return HttpResponse(markup, content_type="text/html")
+    return document_pdf(markup, filename, host=context.get("host"))
 
 
 @login_required

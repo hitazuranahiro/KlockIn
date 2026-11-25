@@ -4,42 +4,20 @@
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter" media="all">
-        <link
-            href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap"
-            rel="stylesheet"
-        >
         <style>
-            {% comment %}
-            Plain and monochrome on purpose: a payslip is a statement, not a
-            marketing surface, and the reference this follows uses black text
-            on white with only light-gray shading for structure -- no accent
-            color anywhere.
-
-            Rendered standalone by wkhtmltopdf (0.12.6, patched Qt/WebKit),
-            with none of the app's own stylesheet in scope, so nothing here
-            depends on it: layout is tables + a little flexbox only (no CSS
-            grid, that engine's WebKit fork predates it), and colors are
-            literal, not var(--...).
-
-            No <thead> anywhere: a repeating <thead> colliding with the first
-            body row across a page break is what produced the overlapping
-            "Deduction / Amount" header seen in review.
-            {% endcomment %}
+            @font-face { font-family: Inter; src: url("{% static 'payroll/fonts/inter/Inter-Regular.ttf' %}"); }
+            @font-face { font-family: Inter; src: url("{% static 'payroll/fonts/inter/Inter-Bold.ttf' %}"); font-weight: bold; }
+            @page { size: a4 portrait; margin: 12mm; }
             html { box-sizing: border-box; font-family: 'Inter', Arial, sans-serif; }
             *, *::before, *::after { box-sizing: inherit; }
             body { margin: 0; background: #fff; color: #111; font-size: 12.5px; }
             table { border-collapse: collapse; width: 100%; }
             p { margin: 0; }
 
-            .doc { padding: 24px 30px; }
+            .doc { padding: {% if pdf_output %}0{% else %}24px 30px{% endif %}; }
 
             /* ---- letterhead ---- */
             .letterhead { text-align: center; margin-bottom: 18px; }
-            /* A table, not flex: wkhtmltopdf's patched Qt/WebKit build
-               predates flexbox gap support, and asking for it here painted
-               a solid black bar across the page instead of laying out the
-               logo and text side by side. */
             .letterhead-row { width: auto; margin: 6px auto 0; }
             .letterhead-row td { vertical-align: middle; }
             .letterhead-row .logo-cell { padding-right: 10px; }
@@ -92,7 +70,7 @@
                                 class="logo"
                                 width="36"
                                 height="36"
-                                src="{% if resolved_company.icon %}{{ protocol }}://{{ host }}{{ resolved_company.icon.url }}{% else %}{{ protocol }}://{{ host }}{% static 'images/ui/auth-logo.png' %}{% endif %}"
+                                src="{% if resolved_company.icon %}{{ resolved_company.icon.url }}{% else %}{% static 'images/ui/auth-logo.png' %}{% endif %}"
                                 alt="{% trans 'Company Logo' %}"
                             >
                         </td>
