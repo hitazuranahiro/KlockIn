@@ -1,0 +1,47 @@
+{% extends "initialize_database/_setup_step.html" %}
+{% load static i18n %}
+{% block setup_progress %}{% include "initialize_database/_setup_progress.html" with current=3 %}{% endblock %}
+{% block step_title %}{% trans "Add your company" %}{% endblock %}
+{% block step_description %}{% trans "Enter your company’s name and primary office address." %}{% endblock %}
+{% block step_content %}
+    {% url 'initialize-database-company' as company_url %}
+    {% trans "Company name" as company_label %}
+    {% trans "Street address" as address_label %}
+    {% trans "Postal code" as zip_label %}
+    {% trans "Company logo (optional)" as icon_label %}
+    <form class="ks-form" method="post" action="{{ company_url }}" enctype="multipart/form-data" hx-post="{{ company_url }}" hx-target="#ohAuthCard" hx-encoding="multipart/form-data" hx-disabled-elt="find button[type=submit]" data-setup-country="{% static 'index/country.js' %}">
+        {% csrf_token %}
+        {{ form.non_field_errors }}
+        <div class="ks-fields">
+            {% include "initialize_database/_setup_field.html" with field=form.company label=company_label wide=True only %}
+            {% include "initialize_database/_setup_field.html" with field=form.address label=address_label wide=True only %}
+            <div class="ks-field">
+                <label for="setup-company-country">{% trans "Country" %}</label>
+                {% trans "Select country" as country_placeholder %}
+                <select name="country" id="setup-company-country" required data-placeholder="{{ country_placeholder }}" data-selected="{{ form.country.value|default:'' }}"{% if form.country.errors %} aria-invalid="true" aria-describedby="{{ form.country.id_for_label }}_error"{% endif %}>
+                    <option value="">{{ country_placeholder }}</option>
+                </select>
+                {{ form.country.errors }}
+            </div>
+            <div class="ks-field">
+                <label for="setup-company-state">{% trans "State or province" %}</label>
+                {% trans "Select state or province" as state_placeholder %}
+                <select name="state" id="setup-company-state" required data-placeholder="{{ state_placeholder }}" data-selected="{{ form.state.value|default:'' }}"{% if form.state.errors %} aria-invalid="true" aria-describedby="{{ form.state.id_for_label }}_error"{% endif %}>
+                    <option value="">{{ state_placeholder }}</option>
+                </select>
+                {{ form.state.errors }}
+            </div>
+            {% include "initialize_database/_setup_field.html" with field=form.city only %}
+            {% include "initialize_database/_setup_field.html" with field=form.zip label=zip_label only %}
+            {% include "initialize_database/_setup_field.html" with field=form.icon label=icon_label wide=True only %}
+            <div class="ks-check ks-field--wide">
+                {{ form.hq }}
+                <label for="{{ form.hq.id_for_label }}">{% trans "This location is the headquarters" %}</label>
+                {{ form.hq.errors }}
+            </div>
+        </div>
+        <div class="ks-actions">
+            <button class="ks-button ks-button--primary" type="submit">{% trans "Save company and continue" %}</button>
+        </div>
+    </form>
+{% endblock %}

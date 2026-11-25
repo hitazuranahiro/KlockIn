@@ -1,0 +1,45 @@
+{% load i18n static %}
+{% comment %}
+  Dashboard (top-level icon, no submenu panel). We attach the same
+  htmx boost params used by submenu links so clicking Dashboard swaps
+  only the main content region instead of doing a full page reload.
+
+  No hx-* attributes here: the sidebar's own click handler already does that
+  request (with the HX-Sidebar-Nav header). With hx-get as well, htmx sent the
+  same request itself first, and the dashboard loaded twice.
+{% endcomment %}
+<a
+    href="{% url 'dashboard' %}"
+    class="sideboxmain workspace-nav-link"
+    data-menu="Dashboard"
+    aria-label="{% trans 'Dashboard' %}"
+    {% if request.resolver_match.url_name == "dashboard" %}aria-current="page"{% endif %}
+>
+    <img
+        src="{% static 'images/ui/dashboard.svg' %}"
+        alt=""
+        class="workspace-nav-icon" width="19" height="19"
+    >
+    <span
+        class="oh-sidebar-label workspace-nav-label"
+        aria-hidden="true"
+    >{% trans "Dashboard" %}</span>
+</a>
+{% if request.user.is_authenticated %}
+    <a
+        href="{% url 'klockin-attendance' %}"
+        class="sideboxmain workspace-nav-link"
+        data-menu="Timekeeping"
+        aria-label="{% trans 'Timekeeping' %}"
+        {% if request.resolver_match.url_name == "klockin-attendance" %}aria-current="page"{% endif %}
+    >
+        <img
+            src="{% static 'images/ui/attendances.svg' %}"
+            alt=""
+            class="workspace-nav-icon" width="19" height="19"
+        >
+        <span class="oh-sidebar-label workspace-nav-label" aria-hidden="true">
+            {% trans "Timekeeping" %}
+        </span>
+    </a>
+{% endif %}

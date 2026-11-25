@@ -1,0 +1,23 @@
+{% load i18n %}
+<ol class="ks-progress__list">
+    <li{% if current == 1 %} aria-current="step"{% elif current > 1 %} class="ks-progress__done"{% endif %}>
+        <span class="ks-progress__number" aria-hidden="true">1</span>
+        <span class="ks-progress__label">{% trans "Unlock setup" %}</span>
+    </li>
+    <li{% if current == 2 %} aria-current="step"{% elif current > 2 %} class="ks-progress__done"{% endif %}>
+        <span class="ks-progress__number" aria-hidden="true">2</span>
+        <span class="ks-progress__label">{% trans "Administrator" %}</span>
+    </li>
+    <li{% if current == 3 %} aria-current="step"{% elif current > 3 %} class="ks-progress__done"{% endif %}>
+        <span class="ks-progress__number" aria-hidden="true">3</span>
+        <span class="ks-progress__label">{% trans "Company" %}</span>
+    </li>
+    <li{% if current == 4 %} aria-current="step"{% elif current > 4 %} class="ks-progress__done"{% endif %}>
+        <span class="ks-progress__number" aria-hidden="true">4</span>
+        <span class="ks-progress__label">{% trans "Departments" %}</span>
+    </li>
+    <li{% if current == 5 %} aria-current="step"{% endif %}>
+        <span class="ks-progress__number" aria-hidden="true">5</span>
+        <span class="ks-progress__label">{% trans "Job positions" %}</span>
+    </li>
+</ol>

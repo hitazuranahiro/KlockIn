@@ -1,0 +1,16 @@
+{% load i18n %}
+<aside class="ks-progress" aria-label="{% trans 'Setup progress' %}">
+    <p class="ks-progress__caption">{% trans "Workspace setup" %}</p>
+    {% block setup_progress %}{% endblock %}
+</aside>
+<section class="ks-panel">
+    <header class="ks-heading">
+        <h1 id="setup-step-title" tabindex="-1">{% block step_title %}{% endblock %}</h1>
+        <p>{% block step_description %}{% endblock %}</p>
+    </header>
+    {% for message in messages %}
+        <p class="ks-notice" role="status">{{ message }}</p>
+    {% endfor %}
+    <p class="ks-notice" data-setup-error role="alert" hidden>{% trans "The request could not be completed. Please try again." %}</p>
+    {% block step_content %}{% endblock %}
+</section>

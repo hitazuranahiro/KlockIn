@@ -1,0 +1,64 @@
+{% extends "index.html" %}
+{% load static %}
+{% block content %}
+<link rel="stylesheet" href="{% static 'klockin_attendance/timekeeping.css' %}">
+<main class="klockin-timekeeping">
+    <a class="kd-back" href="{% url 'klockin-attendance' %}">← Timekeeping</a>
+    <header class="kd-header">
+        <div><h1>{{ attendance.employee_id.get_full_name }}</h1><p>{{ attendance.attendance_date|date:"F j, Y" }}</p></div>
+        <a class="kd-action secondary" href="{% url 'klockin-monthly-dtr' attendance.employee_id_id %}?month={{ attendance.attendance_date|date:'Y-m' }}">Download monthly DTR</a>
+    </header>
+    <dl class="kd-metrics kd-metrics-compact" aria-label="Daily attendance">
+        <div><dt>First in</dt><dd>{{ attendance.attendance_clock_in|time:"H:i"|default:"—" }}</dd></div>
+        <div><dt>Last out</dt><dd>{{ attendance.attendance_clock_out|time:"H:i"|default:"—" }}</dd></div>
+        <div><dt>Worked</dt><dd>{{ attendance.attendance_worked_hour|default:"—" }}</dd></div>
+    </dl>
+    {% if form %}
+        <details class="kd-panel kd-detail"{% if form.errors %} open{% endif %}>
+            <summary>Correct attendance</summary>
+            <form method="post">
+                {% csrf_token %}
+                {{ form.as_p }}
+                <button class="kd-action" type="submit">Save correction</button>
+            </form>
+        </details>
+    {% endif %}
+    {% if can_view_evidence and punches %}
+        <section class="kd-panel kd-detail">
+            <h2>Mobile punch evidence</h2>
+            {% for punch in punches %}
+                <article class="kd-audit">
+                    <h3>{{ punch.get_punch_type_display }} · {{ punch.get_source_display }}</h3>
+                    <p>Punch time {{ punch.punched_at|date:"Y-m-d H:i" }} · Received {{ punch.server_receive_timestamp|date:"Y-m-d H:i" }}</p>
+                    <div class="kd-evidence-row">{% include "klockin_attendance/evidence.html" %}</div>
+                    {% if punch.detected_address %}<p>{{ punch.detected_address }}</p>{% endif %}
+                </article>
+            {% endfor %}
+        </section>
+    {% endif %}
+    {% if can_review %}
+        <section class="kd-panel kd-detail">
+            <h2>Audit history</h2>
+            {% for entry, changes in audits %}
+                <article class="kd-audit">
+                    <h3>{{ entry.history_date|date:"M j, Y · H:i" }} · {{ entry.history_user|default:"System" }}</h3>
+                    {% if entry.history_change_reason %}<p>{{ entry.history_change_reason }}</p>{% endif %}
+                    <ul>{% for change in changes %}<li>{{ change.field|cut:"attendance_"|cut:"_" }} · {{ change.old|default_if_none:"—" }} → {{ change.new|default_if_none:"—" }}</li>{% endfor %}</ul>
+                </article>
+            {% empty %}<p>No changes to daily attendance values.</p>{% endfor %}
+            {% if punch_reviews %}
+                <h3 class="kd-audit">Supplementary mobile evidence</h3>
+                {% for review in punch_reviews %}
+                    <article class="kd-audit">
+                        <h3>{{ review.reviewed_at|date:"M j, Y · H:i" }} · {{ review.reviewed_by|default:"Deleted account" }}</h3>
+                        <p>{{ review.reason }}</p>
+                        <a class="kd-back" href="{% url 'klockin-punch-review' review.punch_id %}">
+                            {{ review.punch.get_punch_type_display }} · {{ review.punch.punched_at|date:"M j, Y · H:i" }}
+                        </a>
+                    </article>
+                {% endfor %}
+            {% endif %}
+        </section>
+    {% endif %}
+</main>
+{% endblock %}

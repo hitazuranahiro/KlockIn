@@ -1,0 +1,199 @@
+"""Apply mobile punches to their employee's dated attendance record."""
+
+from zoneinfo import ZoneInfo
+
+from django.conf import settings
+
+from attendance.corrections import CORRECTION_PREFIX
+from attendance.methods.utils import format_time
+from attendance.models import Attendance, AttendanceActivity
+from attendance.views.views import attendance_validate
+from attendance.views.clock_in_out import early_out, late_come
+from base.models import EmployeeShiftDay
+from employee.models import EmployeeWorkInformation
+
+from .models import AttendancePolicy, AttendancePunch, MobileDayPolicy
+from .policies import duration_totals
+from .workday import WEEKDAYS, shift_schedules, workday_bounds, workday_date
+
+
+def _pairs(punches):
+    opened = None
+    for punch in punches:
+        if punch.punch_type == AttendancePunch.PunchType.CLOCK_IN:
+            if opened is None:
+                opened = punch
+        elif opened is not None and opened.punched_at < punch.punched_at:
+            yield opened, punch
+            opened = None
+    if opened is not None:
+        yield opened, None
+
+
+def _summary(activities, policy, zone):
+    first = min(activities, key=lambda row: row.in_datetime)
+    closed = [row for row in activities if row.out_datetime is not None]
+    last = (
+        max(closed, key=lambda row: row.out_datetime)
+        if len(closed) == len(activities)
+        else None
+    )
+    ranges = [(row.in_datetime.astimezone(zone), row.out_datetime.astimezone(zone)) for row in closed]
+    seconds, _ = duration_totals(ranges, policy)
+    return {
+        "attendance_clock_in_date": first.clock_in_date,
+        "attendance_clock_in": first.clock_in,
+        "attendance_clock_out_date": last.clock_out_date if last else None,
+        "attendance_clock_out": last.clock_out if last else None,
+        "attendance_worked_hour": format_time(seconds),
+    }
+
+
+def project_punch(punch):
+    """Reconcile the affected shift during the ingestion employee lock."""
+    local_zone = ZoneInfo(settings.TIME_ZONE)
+    work_info = EmployeeWorkInformation.objects.filter(
+        employee_id=punch.employee
+    ).first()
+    if work_info is None:
+        return None
+
+    shift_days = {
+        day.day: day for day in EmployeeShiftDay.objects.filter(day__in=WEEKDAYS)
+    }
+    if len(shift_days) != len(WEEKDAYS):
+        return None
+    schedules = shift_schedules(work_info.shift_id_id)
+    work_date = workday_date(punch.punched_at.astimezone(local_zone), schedules)
+    day = shift_days[WEEKDAYS[work_date.weekday()]]
+    minimum_hour, shift_start, shift_end = schedules[work_date.weekday()]
+    start, end = workday_bounds(work_date, schedules, local_zone)
+
+    # A staff evidence attachment must not become a clock interval later.
+    punches = AttendancePunch.objects.filter(
+        employee_id=punch.employee_id,
+        punched_at__gte=start,
+        punched_at__lt=end,
+        review__isnull=True,
+    ).order_by("punched_at", "punch_uuid")
+    pairs = list(_pairs(punches))
+    if not pairs:
+        return None
+
+    daily = (
+        Attendance.objects.select_for_update(of=("self",))
+        .filter(employee_id=punch.employee, attendance_date=work_date)
+        .first()
+    )
+    activities = {
+        row.pk: row
+        for row in AttendanceActivity.objects.select_for_update(of=("self",)).filter(
+            employee_id=punch.employee, attendance_date=work_date
+        )
+    }
+    policy = None
+    needs_snapshot = daily is None
+    if daily is not None:
+        policy = getattr(daily, "mobile_policy", None)
+        managed_ids = {
+            event.activity_id for event in punches if event.attendance_id == daily.pk
+        }
+        managed_ids.discard(None)
+        if (
+            not activities
+            or managed_ids != activities.keys()
+            or daily.is_validate_request
+            or daily.is_validate_request_approved
+            or daily.attendance_overtime_approve
+            or any(row.in_datetime is None for row in activities.values())
+            or any(
+                marker.penaltyaccounts_set.exists()
+                for marker in daily.late_come_early_out.all()
+            )
+            or daily.history.filter(
+                history_change_reason__startswith=CORRECTION_PREFIX
+            ).exists()
+            or any(
+                getattr(daily, key) != value
+                for key, value in _summary(activities.values(), policy, local_zone).items()
+            )
+        ):
+            return None
+    elif activities:
+        return None
+    else:
+        policy = AttendancePolicy._base_manager.filter(company_id=work_info.company_id_id).first()
+        daily = Attendance(
+            employee_id=punch.employee,
+            attendance_date=work_date,
+            attendance_day=day,
+            shift_id=work_info.shift_id,
+            work_type_id=work_info.work_type_id,
+            minimum_hour=minimum_hour,
+        )
+
+    links = {}
+    projected_activities = []
+    for clock_in, clock_out in pairs:
+        activity = activities.pop(clock_in.activity_id, None) or AttendanceActivity(
+            employee_id=punch.employee, attendance_date=work_date, shift_day=day
+        )
+        in_local = clock_in.punched_at.astimezone(local_zone)
+        out_local = clock_out.punched_at.astimezone(local_zone) if clock_out else None
+        fields = {
+            "in_datetime": clock_in.punched_at,
+            "clock_in_date": in_local.date(),
+            "clock_in": in_local.time(),
+            "out_datetime": clock_out.punched_at if clock_out else None,
+            "clock_out_date": out_local.date() if out_local else None,
+            "clock_out": out_local.time() if out_local else None,
+        }
+        if activity.pk is None or any(
+            getattr(activity, key) != value for key, value in fields.items()
+        ):
+            for key, value in fields.items():
+                setattr(activity, key, value)
+            activity.save()
+        projected_activities.append(activity)
+        links[clock_in.pk] = activity.pk
+        if clock_out is not None:
+            links[clock_out.pk] = activity.pk
+
+    summary = _summary(projected_activities, policy, local_zone)
+    if daily.pk is None or any(
+        getattr(daily, key) != value for key, value in summary.items()
+    ):
+        for key, value in summary.items():
+            setattr(daily, key, value)
+        daily.attendance_validated = (
+            daily.attendance_clock_out is not None and attendance_validate(daily)
+        )
+        daily.save()
+        if shift_start != shift_end:
+            daily.late_come_early_out.filter(
+                type__in=("late_come", "early_out")
+            ).delete()
+            late_come(daily, shift_start, shift_end, daily.shift_id)
+            if daily.attendance_clock_out is not None:
+                early_out(daily, shift_start, shift_end, daily.shift_id)
+
+    if needs_snapshot and policy is not None:
+        MobileDayPolicy.objects.create(
+            attendance=daily, mode=policy.mode, break_start=policy.break_start, break_end=policy.break_end
+        )
+
+    for event in punches:
+        activity_id = links.get(event.pk)
+        attendance_id = daily.pk if activity_id is not None else None
+        if event.activity_id != activity_id or event.attendance_id != attendance_id:
+            AttendancePunch.objects.filter(pk=event.pk).update(
+                activity_id=activity_id, attendance_id=attendance_id
+            )
+    for obsolete_activity in activities.values():
+        obsolete_activity.delete()
+
+    if punch.pk in links:
+        punch.activity_id = links[punch.pk]
+        punch.attendance_id = daily.pk
+        return daily
+    return None

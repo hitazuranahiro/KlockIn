@@ -1,0 +1,8 @@
+{% extends "index.html" %}
+{% load i18n %}
+{% block content %}
+<main class="klockin-timekeeping">
+    <a class="kd-back" href="{% url 'employee-view-individual' employee.pk %}">← {% trans "Employee profile" %}</a>
+    {% include "klockin_attendance/_employee_audit.html" %}
+</main>
+{% endblock %}

@@ -1,0 +1,6 @@
+{% extends "initialize_database/_setup_step.html" %}
+{% load i18n %}
+{% block setup_progress %}{% include "initialize_database/_setup_progress.html" with current=4 %}{% endblock %}
+{% block step_title %}{% trans "Set up departments" %}{% endblock %}
+{% block step_description %}{% trans "Add the teams your organization uses to group employees and job positions." %}{% endblock %}
+{% block step_content %}{% include "initialize_database/horilla_department_form.html" %}{% endblock %}

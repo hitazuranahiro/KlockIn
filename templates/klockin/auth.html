@@ -1,0 +1,36 @@
+{% load static i18n horillafilters %}
+{% get_current_language as LANGUAGE_CODE %}
+{% get_def_theme as theme %}
+<!doctype html>
+<html lang="{{ LANGUAGE_CODE }}">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#0056D6">
+    <title>{% block title %}{% endblock %} | KlockIN</title>
+    <link rel="icon" sizes="32x32" href="{% static 'favicons/favicon-32x32.png' %}">
+    <link rel="apple-touch-icon" href="{% static 'favicons/apple-touch-icon.png' %}">
+    <link rel="stylesheet" href="{% static 'cdn/googleapi/css/inter-font-style.css' %}">
+    <link rel="stylesheet" href="{% static 'klockin/auth.css' %}">
+    <script src="{% static 'klockin/auth.js' %}" defer></script>
+</head>
+<body{% if theme %} style="--klockin-blue: {{ theme.primary_600 }}; --klockin-blue-hover: {{ theme.primary_800 }};"{% endif %}>
+    <main class="auth-page">
+        <section class="auth-card" aria-labelledby="auth-title">
+            {% include "klockin/brand.html" %}
+            {% if white_label_company %}
+                <p class="auth-company">{{ white_label_company_name }}</p>
+            {% endif %}
+            {% block content %}{% endblock %}
+            {% if messages %}
+                <div class="auth-messages" role="status">
+                    {% for message in messages %}
+                        <p class="auth-message{% if message.level_tag %} auth-message--{{ message.level_tag }}{% endif %}">{{ message }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+            <footer class="auth-footer">{% trans "A Tomeku product" %}</footer>
+        </section>
+    </main>
+</body>
+</html>

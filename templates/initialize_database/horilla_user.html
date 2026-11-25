@@ -1,0 +1,30 @@
+{% load static i18n %}
+{% get_current_language as language_code %}
+{% get_current_language_bidi as language_bidi %}
+<!doctype html>
+<html lang="{{ language_code }}" dir="{{ language_bidi|yesno:'rtl,ltr' }}">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% trans "Workspace setup" %} · KlockIN</title>
+    <meta name="htmx-config" content='{"allowEval":false,"allowScriptTags":false}'>
+    <link rel="icon" href="{% static 'klockin/mark.png' %}" type="image/png">
+    <link rel="stylesheet" href="{% static 'klockin/setup.css' %}">
+    <script src="{% static 'htmx/htmx.min.js' %}" defer></script>
+    <script src="{% static 'klockin/setup.js' %}" defer></script>
+</head>
+<body class="ks-setup">
+    <div class="ks-page">
+        <header class="ks-brand">
+            <img src="{% static 'klockin/mark.png' %}" alt="" width="40" height="40">
+            <div class="ks-brand__wordmark">
+                <span>KlockIN</span>
+                <small>{% trans "by Tomeku" %}</small>
+            </div>
+        </header>
+        <main id="ohAuthCard" class="ks-card" aria-labelledby="setup-step-title">
+            {% include "initialize_database/_setup_unlock.html" %}
+        </main>
+    </div>
+</body>
+</html>

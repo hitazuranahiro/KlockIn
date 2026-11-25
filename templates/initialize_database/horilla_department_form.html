@@ -1,0 +1,49 @@
+{% load i18n %}
+<div id="initializeDepartment" class="ks-section">
+    {% if department %}
+        {% url 'initialize-department-edit' department.id as department_url %}
+    {% else %}
+        {% url 'initialize-database-department' as department_url %}
+    {% endif %}
+    <form class="ks-form" method="post" action="{{ department_url }}" hx-post="{{ department_url }}" hx-target="#initializeDepartment" hx-swap="outerHTML" hx-disabled-elt="find button[type=submit]">
+        {% csrf_token %}
+        {{ form.non_field_errors }}
+        <div class="ks-fields">
+            {% trans "Department name" as department_label %}
+            {% include "initialize_database/_setup_field.html" with field=form.department label=department_label only %}
+            {% include "initialize_database/_setup_field.html" with field=form.company_id only %}
+        </div>
+        <div class="ks-actions">
+            {% if department %}
+                <button class="ks-button ks-button--outline" type="submit">{% trans "Save department" %}</button>
+                <button class="ks-button ks-button--text" type="button" hx-get="{% url 'initialize-database-department' %}" hx-target="#initializeDepartment" hx-swap="outerHTML">{% trans "Cancel" %}</button>
+            {% else %}
+                <button class="ks-button ks-button--outline" type="submit">{% trans "Add department" %}</button>
+            {% endif %}
+        </div>
+    </form>
+    {% if departments %}
+        <ul class="ks-records" aria-label="{% trans 'Saved departments' %}">
+            {% for instance in departments %}
+                <li>
+                    <span>{{ instance }}</span>
+                    <div class="ks-record-actions">
+                        <button class="ks-button ks-button--text" type="button" hx-get="{% url 'initialize-department-edit' instance.id %}" hx-target="#initializeDepartment" hx-swap="outerHTML" aria-label="{% blocktrans with name=instance %}Edit {{ name }}{% endblocktrans %}">{% trans "Edit" %}</button>
+                        {% url 'initialize-department-delete' instance.id as remove_url %}
+                        <form method="post" action="{{ remove_url }}" hx-post="{{ remove_url }}" hx-target="#initializeDepartment" hx-swap="outerHTML" hx-confirm="{% trans 'Remove this department?' %}" hx-disabled-elt="find button">
+                            {% csrf_token %}
+                            <button class="ks-button ks-button--text ks-button--remove" type="submit" aria-label="{% blocktrans with name=instance %}Remove {{ name }}{% endblocktrans %}">{% trans "Remove" %}</button>
+                        </form>
+                    </div>
+                </li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+    <footer class="ks-actions ks-actions--footer">
+        {% if departments %}
+            <button class="ks-button ks-button--primary" type="button" hx-get="{% url 'initialize-database-job-position' %}" hx-target="#ohAuthCard" hx-disabled-elt="this">{% trans "Continue to job positions" %}</button>
+        {% else %}
+            <a class="ks-button ks-button--text" href="/">{% trans "Skip for now" %}</a>
+        {% endif %}
+    </footer>
+</div>

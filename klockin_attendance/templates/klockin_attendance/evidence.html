@@ -1,0 +1,7 @@
+{% load l10n %}
+<a href="{% url 'klockin-punch-selfie' punch.pk %}" class="kd-selfie" aria-label="Open punch selfie">
+    <img src="{% url 'klockin-punch-selfie' punch.pk %}" width="36" height="36" loading="lazy" alt="Punch selfie">
+</a>
+<small>Device {{ punch.device_fingerprint }}</small>
+<a href="https://www.google.com/maps/search/?api=1&amp;query={{ punch.gps_lat|unlocalize }},{{ punch.gps_long|unlocalize }}" rel="noreferrer" target="_blank">GPS</a>
+{% if punch.device_punched_at %}<small title="Device capture time">Captured {{ punch.device_punched_at|date:"M j, H:i" }}</small>{% endif %}

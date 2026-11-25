@@ -1,0 +1,19 @@
+{% extends "initialize_database/_setup_step.html" %}
+{% load i18n %}
+{% block setup_progress %}{% include "initialize_database/_setup_progress.html" with current=1 %}{% endblock %}
+{% block step_title %}{% trans "Unlock your workspace" %}{% endblock %}
+{% block step_description %}{% trans "Enter the database setup password to begin." %}{% endblock %}
+{% block step_content %}
+    <noscript><p class="ks-notice">{% trans "Enable JavaScript to complete workspace setup." %}</p></noscript>
+    {% url 'initialize-database' as unlock_url %}
+    <form class="ks-form ks-form--narrow" method="post" action="{{ unlock_url }}" hx-post="{{ unlock_url }}" hx-target="#ohAuthCard" hx-disabled-elt="find button[type=submit]">
+        {% csrf_token %}
+        <div class="ks-field">
+            <label for="password">{% trans "Database setup password" %}</label>
+            {% include "initialize_database/_setup_password.html" with field_id="password" field_name="password" field_autocomplete="current-password" %}
+        </div>
+        <div class="ks-actions">
+            <button class="ks-button ks-button--primary" type="submit">{% trans "Continue" %}</button>
+        </div>
+    </form>
+{% endblock %}

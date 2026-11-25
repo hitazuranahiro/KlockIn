@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>{{ title }} | KlockIN</title>
+    <style>
+        body { color: #16243b; font: 14px system-ui, sans-serif; margin: 32px; }
+        table { border-collapse: collapse; width: 100%; }
+        th, td { border: 1px solid #a7b0bf; padding: 6px 8px; text-align: left; }
+        th { font-weight: 700; }
+        tr { break-inside: avoid; }
+        @page { size: landscape; margin: 12mm; }
+        @media print { body { margin: 0; } .screen-only { display: none; } }
+    </style>
+</head>
+<body>
+    <header><h1>{{ title }}</h1><p>KlockIN · {{ start }} – {{ end }}</p></header>
+    <p class="screen-only">Use your browser’s Print command to print or save this report.</p>
+    {% if note %}<p>{{ note }}</p>{% endif %}
+    <table>
+        <thead><tr>{% for label in headers %}<th scope="col">{{ label }}</th>{% endfor %}</tr></thead>
+        <tbody>
+        {% for row in rows %}
+            <tr>{% for value in row %}<td>{{ value|default_if_none:"" }}</td>{% endfor %}</tr>
+        {% empty %}
+            <tr><td colspan="{{ headers|length }}">No matching records.</td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>

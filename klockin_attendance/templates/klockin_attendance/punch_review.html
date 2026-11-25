@@ -1,0 +1,58 @@
+{% extends "index.html" %}
+{% load static %}
+{% block content %}
+<link rel="stylesheet" href="{% static 'klockin_attendance/timekeeping.css' %}">
+<main class="klockin-timekeeping">
+    <a class="kd-back" href="{% url 'klockin-attendance' %}?start={{ punch.punched_at|date:'Y-m-d' }}&amp;end={{ punch.punched_at|date:'Y-m-d' }}&amp;report=pending">← Punches awaiting review</a>
+    <header class="kd-header">
+        <div>
+            <h1>Review mobile punch</h1>
+            <p>{{ punch.employee.get_full_name }} · {{ punch.get_punch_type_display }}</p>
+        </div>
+    </header>
+    <dl class="kd-metrics kd-metrics-compact" aria-label="Punch details">
+        <div><dt>Attendance time</dt><dd>{{ punch.punched_at|date:"M j, Y · H:i" }}</dd></div>
+        {% if punch.device_punched_at %}<div><dt>Device capture</dt><dd>{{ punch.device_punched_at|date:"M j, Y · H:i" }}</dd></div>{% endif %}
+        <div><dt>Received</dt><dd>{{ punch.server_receive_timestamp|date:"M j, Y · H:i" }}</dd></div>
+        <div><dt>Source</dt><dd>{{ punch.get_source_display }}</dd></div>
+    </dl>
+    <section class="kd-panel kd-detail">
+        <h2>Punch evidence</h2>
+        <div class="kd-evidence-row">{% include "klockin_attendance/evidence.html" %}</div>
+        {% if punch.detected_address %}<p>{{ punch.detected_address }}</p>{% endif %}
+    </section>
+    <section class="kd-panel kd-detail">
+        {% if review %}
+            <h2>Supplementary evidence linked</h2>
+            <p>{{ review.reviewed_at|date:"M j, Y · H:i" }} · {{ review.reviewed_by|default:"Deleted account" }}</p>
+            <p>{{ review.reason }}</p>
+            {% if review.attendance_id %}
+                <a class="kd-back" href="{% url 'klockin-attendance-detail' review.attendance_id %}">Open daily record for {{ review.attendance_date|date:"F j, Y" }}</a>
+            {% else %}
+                <p>Daily record {{ review.attendance_reference }} for {{ review.attendance_date|date:"F j, Y" }} was removed.</p>
+            {% endif %}
+        {% elif punch.attendance_id %}
+            <h2>Punch applied to attendance</h2>
+            <a class="kd-back" href="{% url 'klockin-attendance-detail' punch.attendance_id %}">Open daily record</a>
+        {% elif has_eligible_attendance %}
+            <h2>Link to daily attendance</h2>
+            <p>Linking keeps the evidence with the selected record. Use the daily correction form to change worked hours.</p>
+            <form method="post">
+                {% csrf_token %}
+                {{ form.as_p }}
+                <button class="kd-action" type="submit">Link evidence</button>
+            </form>
+        {% elif form %}
+            <h2>No eligible daily attendance record</h2>
+            {% if can_create_attendance %}
+                <p>Create an attendance record for this employee and work date, then return to link the evidence.</p>
+                <a class="kd-back" href="{% url 'attendance-view' %}">Open attendance records</a>
+            {% else %}
+                <p>Ask a staff member who can add attendance to create an eligible record.</p>
+            {% endif %}
+        {% else %}
+            <p>A reviewer with permission to change attendance can link this evidence.</p>
+        {% endif %}
+    </section>
+</main>
+{% endblock %}

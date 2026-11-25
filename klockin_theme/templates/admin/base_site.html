@@ -1,0 +1,21 @@
+{% extends "admin/base.html" %}
+{% load static %}
+
+{% block title %}{% if subtitle %}{{ subtitle }} | {% endif %}{{ title }} | {{ site_title }}{% endblock %}
+
+{% block extrahead %}
+    {{ block.super }}
+    <link rel="icon" sizes="32x32" href="{% static 'favicons/favicon-32x32.png' %}">
+{% endblock %}
+
+{% block branding %}
+    <div id="site-name">
+        <a href="{% url 'admin:index' %}" style="display:inline-flex;align-items:center;gap:.5rem">
+            <img src="{% static 'klockin/mark.png' %}" width="28" height="28" alt="">
+            {{ site_header }}
+        </a>
+    </div>
+    {% if user.is_anonymous %}
+        {% include "admin/color_theme_toggle.html" %}
+    {% endif %}
+{% endblock %}

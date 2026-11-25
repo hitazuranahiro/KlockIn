@@ -1,0 +1,49 @@
+{% extends "initialize_database/_setup_step.html" %}
+{% load i18n %}
+{% block setup_progress %}{% include "initialize_database/_setup_progress.html" with current=2 %}{% endblock %}
+{% block step_title %}{% trans "Create an administrator" %}{% endblock %}
+{% block step_description %}{% trans "This account will manage your KlockIN workspace and employee records." %}{% endblock %}
+{% block step_content %}
+    {% url 'initialize-database-user' as signup_url %}
+    <form class="ks-form" method="post" action="{{ signup_url }}" hx-post="{{ signup_url }}" hx-target="#ohAuthCard" hx-disabled-elt="find button[type=submit]" data-setup-signup>
+        {% csrf_token %}
+        <div class="ks-fields">
+            <div class="ks-field">
+                <label for="firstname">{% trans "First name" %}</label>
+                <input type="text" name="firstname" id="firstname" autocomplete="given-name" required>
+            </div>
+            <div class="ks-field">
+                <label for="lastname">{% trans "Last name" %}</label>
+                <input type="text" name="lastname" id="lastname" autocomplete="family-name" required>
+            </div>
+            <div class="ks-field">
+                <label for="email">{% trans "Email address" %}</label>
+                <input type="email" name="email" id="email" autocomplete="email" required>
+            </div>
+            <div class="ks-field">
+                <label for="phone">{% trans "Phone number" %}</label>
+                <input type="tel" name="phone" id="phone" autocomplete="tel" required>
+            </div>
+            <div class="ks-field">
+                <label for="badge_id">{% trans "Employee badge ID" %}</label>
+                <input type="text" name="badge_id" id="badge_id" required>
+            </div>
+            <div class="ks-field">
+                <label for="username">{% trans "Username" %}</label>
+                <input type="text" name="username" id="username" autocomplete="username" autocapitalize="none" spellcheck="false" required>
+            </div>
+            <div class="ks-field">
+                <label for="adminPassword">{% trans "Password" %}</label>
+                {% include "initialize_database/_setup_password.html" with field_id="adminPassword" field_name="password" field_autocomplete="new-password" %}
+            </div>
+            <div class="ks-field">
+                <label for="confirmPassword">{% trans "Confirm password" %}</label>
+                {% include "initialize_database/_setup_password.html" with field_id="confirmPassword" field_name="confirm_password" field_autocomplete="new-password" description_id="setup-password-error" %}
+                <p class="ks-field-error" id="setup-password-error" aria-live="polite" hidden>{% trans "The passwords must match." %}</p>
+            </div>
+        </div>
+        <div class="ks-actions">
+            <button class="ks-button ks-button--primary" type="submit">{% trans "Create administrator" %}</button>
+        </div>
+    </form>
+{% endblock %}

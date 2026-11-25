@@ -1,0 +1,158 @@
+{% load static i18n horillafilters notifications_tags basefilters %}
+{% show_section as show_section %}
+
+<header id="mainHeader" class="oh-main-header workspace-header">
+    <div class="workspace-header-location">
+        <button type="button" class="workspace-icon workspace-nav-toggle" data-workspace-nav aria-controls="sidebar" aria-expanded="false" aria-label="{% trans 'Open navigation' %}">
+            <i class="fa-solid fa-bars" aria-hidden="true"></i>
+        </button>
+        <div id="breadcrumbs-container" class="workspace-breadcrumbs">
+            {% if breadcrumbs %}
+                {% include "base/navbar_components/breadcrumbs_view.html" %}
+            {% endif %}
+        </div>
+        <span class="workspace-header-brand">KlockIN</span>
+    </div>
+
+    <div class="workspace-header-actions">
+        {% if "attendance"|app_installed %}
+            <div id="attendance-activity-container" class="workspace-clock">
+                {% include "attendance/components/in_out_component.html" %}
+            </div>
+        {% endif %}
+        <div class="workspace-tools-wrap">
+            <button type="button" class="workspace-icon workspace-tools-toggle" data-workspace-tools aria-controls="workspace-tools" aria-expanded="false" aria-label="{% trans 'Workspace tools' %}">
+                <i class="fa-solid fa-ellipsis" aria-hidden="true"></i>
+            </button>
+            <div id="workspace-tools" class="workspace-tools">
+                <button type="button" id="themeToggleButton" class="workspace-icon" title="{% trans 'Toggle theme' %}" aria-label="{% trans 'Toggle theme' %}">
+                    {% if request.session.theme == "dark" %}
+                        <i class="fa-regular fa-lightbulb" aria-hidden="true"></i>
+                    {% else %}
+                        <i class="fa-regular fa-moon" aria-hidden="true"></i>
+                    {% endif %}
+                </button>
+                {% if show_section %}
+                    <a class="workspace-icon" title="{% trans 'Settings' %}" aria-label="{% trans 'Settings' %}"
+                        href="{% url 'system-preferences-view' %}"
+                        hx-get="{% url 'system-preferences-view' %}"
+                        hx-headers='{"HX-Sidebar-Nav": "true"}'
+                        hx-target="#ohMainContent"
+                        hx-select="#ohMainContent > *"
+                        hx-swap="innerHTML show:window:top"
+                        hx-push-url="true"
+                    >
+                        <i class="fa-solid fa-gear" aria-hidden="true"></i>
+                    </a>
+                {% endif %}
+                {% if tour_launcher_enabled %}
+                    <button type="button" id="tourLauncherBtn" class="workspace-icon workspace-tour"
+                        title="{% trans 'Take a tour' %}" aria-label="{% trans 'Take a tour' %}"
+                        aria-haspopup="dialog" aria-expanded="false" aria-controls="klockinTourPanel"
+                    >
+                        <i class="fa-regular fa-circle-question" aria-hidden="true"></i>
+                        {% if tour_has_pending %}<span class="workspace-tour-dot"></span>{% endif %}
+                    </button>
+                {% endif %}
+                {% if show_language_switcher %}
+                    <div class="workspace-dropdown relative dropdown-wrapper">
+                        <button type="button" class="workspace-icon" title="{% trans 'Language' %}" aria-label="{% trans 'Language' %}">
+                            <i class="fa-solid fa-globe" aria-hidden="true"></i>
+                        </button>
+                        {% include "base/navbar_components/language_settings.html" %}
+                    </div>
+                {% endif %}
+                {% if show_company_switcher %}
+                    <div class="workspace-dropdown relative dropdown-wrapper">
+                        <button type="button" class="workspace-icon" title="{% trans 'Switch company' %}" aria-label="{% trans 'Switch company' %}">
+                            <i class="fa-regular fa-building" aria-hidden="true"></i>
+                        </button>
+                        {% include "base/navbar_components/company_selection.html" %}
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="workspace-dropdown relative dropdown-wrapper">
+            <button
+                type="button" class="workspace-icon workspace-notification" aria-label="{% trans 'Notifications' %}"
+                hx-get="{% url 'notifications' %}"
+                hx-target="#notificationContainer"
+                hx-trigger="load"
+            >
+                <i class="fa-regular fa-bell" aria-hidden="true"></i>
+                {% notifications_unread as unread_count %}
+                <span
+                    id="notifyBadgeCircle"
+                    class="workspace-notify-badge{% if not unread_count %} hidden{% endif %}"
+                >
+                    {% live_notify_badge %}
+                </span>
+            </button>
+            <script>
+                // Hide the notification badge circle whenever the unread count is 0.
+                // The count element (.live_notify_badge) is rewritten in place by the
+                // notifications live-update JS, so we observe it and toggle the circle
+                // reactively — no page reload needed when the count changes.
+                (function () {
+                    function syncNotifyBadge() {
+                        var circle = document.getElementById("notifyBadgeCircle");
+                        if (!circle) return;
+                        var badge = circle.querySelector(".live_notify_badge");
+                        var count = badge ? parseInt((badge.textContent || "").trim(), 10) : 0;
+                        circle.classList.toggle("hidden", !count);
+                    }
+                    function initNotifyBadgeSync() {
+                        var circle = document.getElementById("notifyBadgeCircle");
+                        if (!circle) return;
+                        syncNotifyBadge();
+                        var badge = circle.querySelector(".live_notify_badge");
+                        if (badge) {
+                            new MutationObserver(syncNotifyBadge).observe(badge, {
+                                childList: true,
+                                characterData: true,
+                                subtree: true,
+                            });
+                        }
+                    }
+                    if (document.readyState === "loading") {
+                        document.addEventListener("DOMContentLoaded", initNotifyBadgeSync);
+                    } else {
+                        initNotifyBadgeSync();
+                    }
+                })();
+            </script>
+            {% include "notification/notification.html" %}
+        </div>
+        <div class="workspace-dropdown workspace-profile relative dropdown-wrapper">
+            {% include "klockin_theme/components/workspace_profile.html" %}
+        </div>
+    </div>
+</header>
+
+<!-- All Notification -->
+<div class="sidebarModal overflow-hidden overflow-y-auto" id="sidebarModal3">
+    <!-- <button class="closebtn closeSidemenu absolute top-3 right-3" data-sidebar="sidebarModal3"><i
+      class="fa-solid fa-xmark"></i></button> -->
+
+    <div class="flex justify-between items-center mb-4">
+        <h3 class="font-semibold flex items-center gap-2">
+            <button
+                class="closebtn closeSidemenu cursor-pointer text-xs group text-primary-600 w-6 h-6 bg-primary-100 hover:bg-primary-600 hover:text-white rounded-full transition duration-300 flex items-center justify-center"
+                data-sidebar="sidebarModal3"
+            >
+                <i class="fa-solid fa-angle-right"></i>
+            </button>
+            {% trans "All Notifications" %}
+        </h3>
+        <button
+            class="text-primary-600 text-xs flex justify-center font-semibold hover:text-[#ac3b2a] transition duration-300"
+            hx-post="{% url 'delete-all-notifications' %}"
+            hx-target="#sidebarModalBody"
+        >
+            {% trans "Clear All" %}
+        </button>
+    </div>
+    <div class="" id="sidebarModalBody"></div>
+    <!--sidecont-->
+</div>

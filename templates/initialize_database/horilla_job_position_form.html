@@ -1,0 +1,56 @@
+{% load i18n %}
+<div id="initializeJobPositions" class="ks-section">
+    {% if job_position %}
+        {% url 'initialize-job-position-edit' job_position.id as position_url %}
+    {% else %}
+        {% url 'initialize-database-job-position' as position_url %}
+    {% endif %}
+    <form class="ks-form" method="post" action="{{ position_url }}" hx-post="{{ position_url }}" hx-target="#initializeJobPositions" hx-swap="outerHTML" hx-disabled-elt="find button[type=submit]">
+        {% csrf_token %}
+        {{ form.non_field_errors }}
+        <div class="ks-fields">
+            {% trans "Job title" as position_label %}
+            {% trans "Departments (select one or more)" as department_label %}
+            {% include "initialize_database/_setup_field.html" with field=form.job_position label=position_label only %}
+            {% if job_position %}
+                {% include "initialize_database/_setup_field.html" with field=form.department_id only %}
+                {% include "initialize_database/_setup_field.html" with field=form.headcount wide=True only %}
+            {% else %}
+                {% include "initialize_database/_setup_field.html" with field=form.department_id label=department_label only %}
+                <input type="hidden" name="{{ form.headcount.html_name }}" value="0">
+                {% if company %}
+                    <input type="hidden" name="{{ form.company_id.html_name }}" value="{{ company.pk }}">
+                {% endif %}
+            {% endif %}
+        </div>
+        <div class="ks-actions">
+            {% if job_position %}
+                <button class="ks-button ks-button--outline" type="submit">{% trans "Save job position" %}</button>
+            {% else %}
+                <button class="ks-button ks-button--outline" type="submit">{% trans "Add job position" %}</button>
+            {% endif %}
+        </div>
+    </form>
+    {% if job_positions %}
+        <ul class="ks-records" aria-label="{% trans 'Saved job positions' %}">
+            {% for instance in job_positions %}
+                <li>
+                    <span class="ks-record__label">{{ instance.job_position }}<small>{{ instance.department_id }}</small></span>
+                    <div class="ks-record-actions">
+                        <button class="ks-button ks-button--text" type="button" hx-get="{% url 'initialize-job-position-edit' instance.id %}" hx-target="#initializeJobPositions" hx-swap="outerHTML" aria-label="{% blocktrans with name=instance %}Edit {{ name }}{% endblocktrans %}">{% trans "Edit" %}</button>
+                        {% url 'initialize-job-position-delete' instance.id as remove_url %}
+                        <form method="post" action="{{ remove_url }}" hx-post="{{ remove_url }}" hx-target="#initializeJobPositions" hx-swap="outerHTML" hx-confirm="{% trans 'Remove this job position?' %}" hx-disabled-elt="find button">
+                            {% csrf_token %}
+                            <button class="ks-button ks-button--text ks-button--remove" type="submit" aria-label="{% blocktrans with name=instance %}Remove {{ name }}{% endblocktrans %}">{% trans "Remove" %}</button>
+                        </form>
+                    </div>
+                </li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+    {% if job_positions %}
+        <footer class="ks-actions ks-actions--footer">
+            <a class="ks-button ks-button--primary" href="/">{% trans "Finish setup" %}</a>
+        </footer>
+    {% endif %}
+</div>

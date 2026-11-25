@@ -1,0 +1,238 @@
+.ki-home {
+  --ki-ink: var(--workspace-ink, #13223a);
+  --ki-muted: var(--workspace-muted, #576981);
+  --ki-line: var(--workspace-line, #e0e8f2);
+  --ki-panel: var(--workspace-surface, #fff);
+  --ki-blue: #0056d6;
+  width: min(100%, 1280px);
+  margin-inline: auto;
+  color: var(--ki-ink);
+  padding-block: 9px 36px;
+}
+
+.dark .ki-home { --ki-blue: #91bbff; }
+
+.ki-home-heading,
+.ki-home-section-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px 20px;
+}
+
+.ki-home-heading { margin-bottom: 20px; }
+
+.ki-home-heading h1 {
+  margin: 0;
+  font-size: clamp(1.75rem, 3.7vw, 2.55rem);
+  line-height: 1.1;
+  letter-spacing: -.048em;
+  font-weight: 750;
+}
+
+.ki-home-button {
+  display: inline-flex;
+  min-height: 42px;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 8px 15px;
+  border: 1px solid transparent;
+  border-radius: 9px;
+  font-size: .87rem;
+  font-weight: 700;
+  text-decoration: none;
+  transition: background-color .16s ease, color .16s ease, transform .16s ease;
+}
+
+.ki-home a:focus-visible, .ki-home summary:focus-visible {
+  outline: 2px solid #2b84ff;
+  outline-offset: 3px;
+}
+
+.ki-home-button:active { transform: translateY(1px); }
+.ki-home-button-subtle { color: var(--ki-ink); background: var(--ki-panel); border-color: var(--ki-line); }
+.ki-home-button-subtle:hover { color: var(--ki-blue); border-color: #91b7ec; }
+.ki-home-button-inverse { background: #fff; color: #10478e; }
+.ki-home-button-inverse:hover { background: #e7f1ff; color: #093372; }
+
+.ki-home-welcome {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 24px;
+  align-items: center;
+  min-height: 232px;
+  isolation: isolate;
+  position: relative;
+  overflow: hidden;
+  padding: clamp(23px, 4.2vw, 48px);
+  border: 1px solid #173c78;
+  border-radius: 20px;
+  background: linear-gradient(112deg, #112b55 5%, #153e79 68%, #1a58a9);
+  color: #fff;
+}
+
+.ki-home-welcome::before {
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  background: repeating-radial-gradient(ellipse 65% 110% at 100% 100%, transparent 0 31px, #d3e6ff25 32px 33px, transparent 34px 55px);
+  mask-image: linear-gradient(90deg, transparent 45%, #000 82%);
+  pointer-events: none;
+  content: "";
+}
+
+.ki-home-scope, .ki-home-intro { margin: 0; }
+.ki-home-scope { margin-bottom: 9px; color: #c5dbfa; font-weight: 650; font-size: .82rem; }
+.ki-home-welcome h2 {
+  margin: 0;
+  color: #fff;
+  font-size: clamp(1.8rem, 4.6vw, 3.15rem);
+  letter-spacing: -.048em;
+  line-height: 1.12;
+  font-weight: 725;
+  overflow-wrap: anywhere;
+}
+
+.ki-home-intro { margin: 9px 0 22px; color: #d5e5fa; line-height: 1.5; font-size: .95rem; }
+
+.ki-home-date {
+  display: grid;
+  min-width: 132px;
+  padding: 15px 18px;
+  text-align: center;
+  border-radius: 15px;
+  border: 1px solid #b9d7fe56;
+  background: #102e5a60;
+  color: #dceaff;
+  font-size: .82rem;
+}
+
+.ki-home-date strong {
+  color: #fff;
+  font-size: clamp(2.5rem, 5vw, 3.55rem);
+  line-height: 1.15;
+  letter-spacing: -.075em;
+  font-variant-numeric: tabular-nums;
+}
+
+.ki-home-today { margin-top: 30px; }
+.ki-home-section-heading { margin: 0 0 12px; }
+.ki-home-section-heading h2 { margin: 0; color: var(--ki-ink); font-size: 1.12rem; line-height: 1.3; font-weight: 740; letter-spacing: -.027em; }
+.ki-home-section-heading p, .ki-home-section-heading > span { margin: 4px 0 0; color: var(--ki-muted); font-size: .82rem; }
+.ki-home-section-heading a { flex: none; color: var(--ki-blue); font-size: .84rem; font-weight: 650; }
+.ki-home-section-heading a:hover, .ki-home-links a:hover { text-decoration: underline; text-underline-offset: 3px; }
+
+.ki-home-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin: 0 0 22px;
+  border: 1px solid var(--ki-line);
+  border-radius: 15px;
+  background: var(--ki-panel);
+}
+
+.ki-home-metric {
+  --ki-indicator: #1b65c6;
+  min-width: 0;
+  padding: 17px 22px 19px;
+}
+.ki-home-metric + .ki-home-metric { border-inline-start: 1px solid var(--ki-line); }
+.ki-home-metric-green { --ki-indicator: #17805c; }
+.ki-home-metric-amber { --ki-indicator: #a96812; }
+.ki-home-metric-ink { --ki-indicator: #465e7c; }
+.ki-home-metric dt { color: var(--ki-muted); font-size: .86rem; font-weight: 650; }
+.ki-home-metric dt::before {
+  content: "";
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  margin-inline-end: 8px;
+  vertical-align: .08em;
+  border-radius: 50%;
+  background: var(--ki-indicator);
+}
+.ki-home-metric dd {
+  margin: 7px 0 0;
+  font-size: clamp(1.42rem, 3vw, 2.15rem);
+  line-height: 1.12;
+  font-weight: 745;
+  letter-spacing: -.055em;
+  font-variant-numeric: tabular-nums;
+}
+.ki-home-metric small { display: block; margin-top: 6px; color: var(--ki-muted); font-size: .75rem; letter-spacing: 0; font-weight: 500; }
+
+.ki-home-panels { display: grid; grid-template-columns: minmax(0, 1.62fr) minmax(0, 1fr); gap: 18px; align-items: start; }
+.ki-home-panel { border: 1px solid var(--ki-line); border-radius: 15px; background: var(--ki-panel); padding: 20px 22px; box-shadow: 0 3px 12px #1c3f6810; }
+.ki-home-chart {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  list-style: none;
+  gap: clamp(3px, 1vw, 12px);
+  margin: 20px 0 0;
+  padding: 0;
+  text-align: center;
+  color: var(--ki-muted);
+  font-size: .78rem;
+  font-variant-numeric: tabular-nums;
+}
+.ki-home-chart li { min-width: 0; }
+.ki-home-chart li > span { font-weight: 650; }
+.ki-home-chart-current { color: var(--ki-blue); font-weight: 700; }
+.ki-home-bar-track {
+  display: grid;
+  justify-items: center;
+  align-items: end;
+  height: 106px;
+  margin: 6px 0 9px;
+  border-bottom: 1px solid var(--ki-line);
+  background-image: repeating-linear-gradient(to top, transparent 0 25px, var(--ki-line) 26px 27px);
+}
+.ki-home-bar-track > span {
+  width: min(60%, 28px);
+  height: var(--ki-plot-height);
+  border-radius: 5px 5px 0 0;
+  background: #89b6ee;
+}
+.ki-home-chart-current .ki-home-bar-track > span { background: var(--ki-blue); }
+.ki-home-chart-empty .ki-home-bar-track { height: 63px; }
+.ki-home-empty { margin: 12px 0 0; color: var(--ki-muted); font-size: .81rem; }
+.ki-home-links, .ki-home-setup ol { list-style: none; margin: 0; padding: 0; }
+.ki-home-links li + li, .ki-home-setup li { border-top: 1px solid var(--ki-line); }
+.ki-home-links a { display: flex; align-items: center; gap: 10px; min-height: 47px; color: var(--ki-ink); text-decoration: none; font-size: .88rem; font-weight: 625; }
+.ki-home-links a > :first-child { flex: 1; min-width: 0; }
+.ki-home-links a > :last-child { color: var(--ki-blue); padding-inline-start: 4px; }
+.ki-home-links small { display: block; margin-top: 1px; color: var(--ki-muted); font-size: .73rem; font-weight: 500; }
+.ki-home-count { min-width: 28px; text-align: center; padding: 2px 6px; border-radius: 6px; background: #e9f2ff; color: #084991; font-size: .78rem; }
+
+.ki-home-setup { margin-top: 18px; padding-block: 14px; }
+.ki-home-setup summary { cursor: pointer; color: var(--ki-ink); font-size: .9rem; font-weight: 700; }
+.ki-home-setup summary span:last-child { margin-inline-start: 8px; color: var(--ki-muted); font-size: .78rem; font-weight: 550; }
+.ki-home-setup ol { margin-top: 13px; }
+.ki-home-setup li { display: flex; justify-content: space-between; gap: 10px; padding-block: 8px; font-size: .86rem; }
+.ki-home-setup li a { color: var(--ki-blue); text-decoration: underline; text-underline-offset: 3px; }
+.ki-home-setup li span { color: var(--ki-muted); }
+.ki-home-sr { position: absolute; width: 1px; height: 1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+
+@media (max-width: 790px) {
+  .ki-home-panels { grid-template-columns: 1fr; gap: 12px; }
+  .ki-home-metric { padding-inline: 14px; }
+  .ki-home-welcome { min-height: 200px; }
+}
+
+@media (max-width: 480px) {
+  .ki-home-welcome { gap: 12px; padding: 22px 16px; }
+  .ki-home-date { min-width: 68px; padding: 10px 6px; font-size: .68rem; }
+  .ki-home-welcome h2 { font-size: 1.67rem; }
+  .ki-home-intro { font-size: .84rem; }
+  .ki-home-metric { padding: 13px 7px; }
+  .ki-home-metric dt, .ki-home-metric small { font-size: .7rem; }
+  .ki-home-metric dt::before { width: 6px; height: 6px; margin-inline-end: 4px; }
+  .ki-home-metric dd { font-size: clamp(1.05rem, 5vw, 1.4rem); }
+  .ki-home-panel { padding-inline: 13px; }
+  .ki-home-heading > a { flex: none; padding-inline: 9px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ki-home-button { transition: none; }
+}

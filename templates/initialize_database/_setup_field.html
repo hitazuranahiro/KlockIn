@@ -1,0 +1,8 @@
+<div class="ks-field{% if wide %} ks-field--wide{% endif %}">
+    <label for="{{ field.id_for_label }}">{% firstof label field.label %}</label>
+    {{ field }}
+    {{ field.errors }}
+    {% if field.help_text %}
+        <p class="ks-hint" id="{{ field.id_for_label }}_helptext">{{ field.help_text }}</p>
+    {% endif %}
+</div>

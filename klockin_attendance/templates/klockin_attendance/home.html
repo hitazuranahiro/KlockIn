@@ -1,0 +1,110 @@
+{% extends "index.html" %}
+{% load static i18n %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'klockin/home.css' %}">
+<div class="ki-home">
+    <header class="ki-home-heading">
+        <h1>{{ home_title }}</h1>
+        {% if team %}
+            <a class="ki-home-button ki-home-button-subtle" href="{% url 'dashboard' %}?view=analytics">{% trans "View analytics" %}</a>
+        {% else %}
+            <a class="ki-home-button ki-home-button-subtle" href="{% url 'ess-dashboard' %}?view=details">{% trans "View my reports" %}</a>
+        {% endif %}
+    </header>
+
+    <section class="ki-home-welcome" aria-labelledby="ki-welcome-title">
+        <div class="ki-home-welcome-copy">
+            {% if team and dashboard_company_label %}<p class="ki-home-scope">{{ dashboard_company_label }}</p>{% endif %}
+            <h2 id="ki-welcome-title">
+                {% if employee.employee_first_name %}
+                    {% blocktrans with first_name=employee.employee_first_name %}Welcome, {{ first_name }}{% endblocktrans %}
+                {% else %}
+                    {% trans "Welcome to KlockIN" %}
+                {% endif %}
+            </h2>
+            <p class="ki-home-intro">
+                {% if team_attendance %}{% trans "See who checked in and review the punches that need attention." %}
+                {% else %}{% trans "See your check-ins, recorded hours, and daily time records." %}{% endif %}
+            </p>
+            <a class="ki-home-button ki-home-button-inverse" href="{{ timekeeping_url }}">{% trans "Open Timekeeping" %}<span aria-hidden="true">↗</span></a>
+        </div>
+        <time class="ki-home-date" datetime="{{ today|date:'Y-m-d' }}">
+            <span>{{ today|date:'l' }}</span>
+            <strong>{{ today|date:'j' }}</strong>
+            <span>{{ today|date:'F Y' }}</span>
+        </time>
+    </section>
+
+    <section class="ki-home-today" aria-labelledby="ki-today-title">
+        <div class="ki-home-section-heading">
+            <h2 id="ki-today-title">{% if team_attendance %}{% trans "Attendance today" %}{% else %}{% trans "My attendance today" %}{% endif %}</h2>
+            {% if team_attendance %}<span>{% blocktrans count count=employee_count %}{{ count }} active employee{% plural %}{{ count }} active employees{% endblocktrans %}</span>{% endif %}
+        </div>
+        <dl class="ki-home-metrics">
+            {% for label, value, note, tone in metrics %}
+            <div class="ki-home-metric ki-home-metric-{{ tone }}">
+                <dt>{{ label }}</dt>
+                <dd>{{ value|default_if_none:"—" }}<small>{{ note }}</small></dd>
+            </div>
+            {% endfor %}
+        </dl>
+    </section>
+
+    <div class="ki-home-panels">
+        <section class="ki-home-panel ki-home-trend" aria-labelledby="ki-trend-title">
+            <header class="ki-home-section-heading">
+                <div>
+                    <h2 id="ki-trend-title">{% if team_attendance %}{% trans "Check-ins by day" %}{% else %}{% trans "My check-ins" %}{% endif %}</h2>
+                    <p>{{ week_start|date:'M j' }} – {{ today|date:'M j, Y' }}</p>
+                </div>
+                <a href="{{ timekeeping_url }}?start={{ week_start|date:'Y-m-d' }}&amp;end={{ today|date:'Y-m-d' }}">{% trans "View records" %}<span aria-hidden="true"> ↗</span></a>
+            </header>
+            <ul class="ki-home-chart{% if not has_check_ins %} ki-home-chart-empty{% endif %}">
+                {% for day in week %}
+                <li{% if forloop.last %} class="ki-home-chart-current"{% endif %}>
+                    <span class="ki-home-sr">{{ day.date|date:'l, F j' }}.</span>
+                    <span aria-hidden="true">{{ day.count }}</span>
+                    <span class="ki-home-sr">{% blocktrans count count=day.count %}{{ count }} check-in{% plural %}{{ count }} check-ins{% endblocktrans %}</span>
+                    <div class="ki-home-bar-track" aria-hidden="true"><span style="--ki-plot-height: {{ day.height }}%"></span></div>
+                    <time datetime="{{ day.date|date:'Y-m-d' }}" aria-hidden="true">{{ day.date|date:'D' }}</time>
+                </li>
+                {% endfor %}
+            </ul>
+            {% if not has_check_ins %}<p class="ki-home-empty">{% trans "No check-ins recorded in this period." %}</p>{% endif %}
+        </section>
+
+        <section class="ki-home-panel ki-home-quick" aria-labelledby="ki-quick-title">
+            <header class="ki-home-section-heading"><h2 id="ki-quick-title">{% if team_attendance %}{% trans "Follow up" %}{% else %}{% trans "Quick access" %}{% endif %}</h2></header>
+            <ul class="ki-home-links">
+                {% if team_attendance %}
+                <li><a href="{{ timekeeping_url }}?start={{ week_start|date:'Y-m-d' }}&amp;end={{ today|date:'Y-m-d' }}&amp;report=pending"><span>{% trans "Punches awaiting review" %}<small>{% trans "Last 7 days" %}</small></span><span class="ki-home-count">{{ review_count }}</span><span aria-hidden="true">→</span></a></li>
+                <li><a href="{{ timekeeping_url }}?start={{ week_start|date:'Y-m-d' }}&amp;end={{ today|date:'Y-m-d' }}&amp;report=unsynced"><span>{% trans "Device sync reports" %}</span><span aria-hidden="true">→</span></a></li>
+                {% if perms.employee.view_employee %}<li><a href="{% url 'employee-view' %}"><span>{% trans "Employee directory" %}</span><span aria-hidden="true">→</span></a></li>{% endif %}
+                {% if employee %}<li><a href="{% url 'ess-dashboard' %}"><span>{% trans "My workspace" %}</span><span aria-hidden="true">→</span></a></li>{% endif %}
+                {% else %}
+                {% if employee %}
+                <li><a href="{% url 'klockin-monthly-dtr' employee.pk %}?month={{ today|date:'Y-m' }}"><span>{% trans "Download this month’s DTR" %}</span><span aria-hidden="true">↓</span></a></li>
+                <li><a href="{% url 'employee-profile' %}"><span>{% trans "My profile" %}</span><span aria-hidden="true">→</span></a></li>
+                {% endif %}
+                {% if can_switch_to_main_dashboard %}<li><a href="{% url 'dashboard' %}"><span>{% trans "Team overview" %}</span><span aria-hidden="true">→</span></a></li>{% endif %}
+                {% endif %}
+            </ul>
+        </section>
+    </div>
+
+    {% if show_setup_checklist %}
+    <details class="ki-home-panel ki-home-setup">
+        <summary>
+            <span>{% trans "Workspace setup" %}</span>
+            <span>{{ setup_progress_pct }}% {% trans "complete" %}</span>
+        </summary>
+        <ol>
+            {% for step in setup_steps %}
+            <li><a href="{{ step.url }}">{{ step.title }}</a><span>{% if step.done %}{% trans "Complete" %}{% else %}{% trans "To do" %}{% endif %}</span></li>
+            {% endfor %}
+        </ol>
+    </details>
+    {% endif %}
+</div>
+{% endblock %}

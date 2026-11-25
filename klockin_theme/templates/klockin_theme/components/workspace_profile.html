@@ -1,0 +1,57 @@
+{% load i18n horillafilters %}
+{% with employee=request.user.employee_get %}
+    {% firstof employee.get_full_name request.user.get_full_name request.user.username as display_name %}
+    <button type="button" class="workspace-profile-toggle" aria-label="{% trans 'Account' %} · {{ display_name }}">
+        <span class="workspace-profile-avatar">
+            {% if employee.employee_profile %}
+                <img src="{{ employee.employee_profile.url }}" alt="" width="32" height="32">
+            {% else %}
+                <span aria-hidden="true">{{ display_name|first|upper }}</span>
+            {% endif %}
+        </span>
+        <span class="workspace-profile-details">
+            <span class="workspace-profile-name">{{ display_name }}</span>
+            {% if employee and request|is_check_in_enabled %}
+                <span class="workspace-profile-status">
+                    {% if employee.check_online %}{% trans "Online" %}{% else %}{% trans "Offline" %}{% endif %}
+                </span>
+            {% endif %}
+        </span>
+        <i class="fa-solid fa-chevron-down workspace-profile-chevron" aria-hidden="true"></i>
+    </button>
+    <div class="dropdown-content workspace-account-menu absolute right-0 bg-white">
+        <ul>
+            {% if employee %}
+                {% if request.session.selected_company == "all" or employee.employee_work_info.company_id.id == request.session.selected_company|default:"-1"|add:"0" %}
+                    <li>
+                        <a href="{% url 'employee-profile' %}"
+                            hx-get="{% url 'employee-profile' employee.id %}"
+                            hx-target="#ohMainContent"
+                            hx-swap="innerHTML show:window:top"
+                            hx-push-url="{% url 'employee-profile' %}"
+                        >{% trans "My Profile" %}</a>
+                    </li>
+                    <li>
+                        <a href="{% url 'change-username' %}"
+                            hx-get="{% url 'change-username' %}"
+                            hx-target="#ohMainContent"
+                            hx-select="#ohMainContent > *"
+                            hx-swap="innerHTML show:window:top"
+                            hx-push-url="true"
+                        >{% trans "Change Username" %}</a>
+                    </li>
+                    <li>
+                        <a href="{% url 'change-password' %}"
+                            hx-get="{% url 'change-password' %}"
+                            hx-target="#ohMainContent"
+                            hx-select="#ohMainContent > *"
+                            hx-swap="innerHTML show:window:top"
+                            hx-push-url="true"
+                        >{% trans "Change Password" %}</a>
+                    </li>
+                {% endif %}
+            {% endif %}
+            <li><a href="{% url 'logout' %}">{% trans "Logout" %}</a></li>
+        </ul>
+    </div>
+{% endwith %}

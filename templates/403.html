@@ -1,0 +1,15 @@
+{% extends "klockin/error.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Access denied" %}{% endblock %}
+{% block heading %}{% trans "Access denied" %}{% endblock %}
+{% block description %}{% trans "You do not have permission to view this page." %}{% endblock %}
+{% block messages %}
+    {% if messages %}
+        <div class="auth-messages" role="status">
+            {% for message in messages %}
+                <p class="auth-message">{{ message }}</p>
+            {% endfor %}
+        </div>
+    {% endif %}
+{% endblock %}

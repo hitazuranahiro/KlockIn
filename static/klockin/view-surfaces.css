@@ -1,0 +1,69 @@
+.ki-list-toolbar {
+    padding: 12px;
+    border: 1px solid var(--workspace-line, #dce5ef);
+    border-radius: 13px;
+    background: var(--workspace-surface, #fff);
+}
+
+.ki-list-panel,
+.workspace-content .oh-tabs,
+.workspace-content .oh-card > .oh-accordion-body {
+    border: 1px solid var(--workspace-line, #dce5ef);
+    border-radius: 13px;
+    background: var(--workspace-surface, #fff);
+    box-shadow: 0 3px 14px #172f5010;
+}
+
+.ki-list-panel .ki-data-table {
+    font-variant-numeric: tabular-nums;
+    color: var(--workspace-ink, #111e35);
+}
+
+.ki-data-table thead th {
+    background: var(--workspace-canvas, #f5f8fc);
+    color: var(--workspace-muted, #53657c);
+    font-weight: 680;
+}
+
+.ki-data-table tbody td {
+    border-bottom-color: var(--workspace-line, #dce5ef);
+}
+
+.ki-data-table tbody tr:last-child td { border-bottom-color: transparent; }
+.ki-data-table tbody tr:hover td { background-color: var(--workspace-hover, #f3f7fd); }
+.ki-list-panel .hlv-pagination { border-radius: 9px; }
+.ki-list-toolbar :is(a,button,input,select):focus-visible,
+.ki-list-panel :is(a,button,input,select):focus-visible,
+.ki-detail-sheet :is(a,button,input,select,textarea):focus-visible {
+    outline: 2px solid #3986ee;
+    outline-offset: 2px;
+}
+
+.ki-detail-sheet {
+    border: 1px solid var(--workspace-line, #dce5ef);
+    border-radius: 16px;
+    color: var(--workspace-ink, #111e35);
+    box-shadow: 0 14px 34px #132d5226;
+}
+
+.ki-detail-sheet .hdv__head { padding-bottom: 9px; border-bottom: 1px solid var(--workspace-line, #dce5ef); }
+.ki-form-sheet .oh-input-group { min-width: 0; }
+.ki-form-sheet .oh-label { font-weight: 640; color: var(--workspace-ink, #111e35); }
+.ki-form-sheet :is(input,select,textarea):focus-visible { outline: 2px solid #3986ee; outline-offset: 1px; }
+.workspace-content .oh-tabs .oh-tabs__tab-scroll { gap: 5px; }
+.workspace-content .oh-tabs .oh-tabs__tab-scroll :is(a,button) { border-radius: 8px; }
+
+.ki-generic-card-grid {
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 206px), 1fr));
+    gap: 14px;
+}
+
+.dark .ki-data-table tbody tr:hover td { background-color: #233450; }
+.dark .ki-detail-sheet { background-color: #182337; color: #eef4fc; }
+.dark .ki-form-sheet .oh-label { color: #eef4fc; }
+
+@media (max-width: 620px) {
+    .ki-list-toolbar { padding: 9px; }
+    .ki-list-panel { border-radius: 10px; }
+    .ki-list-toolbar > * { min-width: 0; }
+}

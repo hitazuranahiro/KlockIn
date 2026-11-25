@@ -1,0 +1,25 @@
+{% load static i18n %}
+{% get_current_language as LANGUAGE_CODE %}
+<!doctype html>
+<html lang="{{ LANGUAGE_CODE }}">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#0056D6">
+    <title>{% block title %}{% endblock %} | KlockIN</title>
+    <link rel="icon" sizes="32x32" href="{% static 'favicons/favicon-32x32.png' %}">
+    <link rel="stylesheet" href="{% static 'klockin/auth.css' %}">
+</head>
+<body>
+    <main class="auth-page">
+        <section class="auth-card" aria-labelledby="error-title">
+            {% include "klockin/brand.html" %}
+            <h1 id="error-title">{% block heading %}{% endblock %}</h1>
+            <p class="auth-description">{% block description %}{% endblock %}</p>
+            {% block messages %}{% endblock %}
+            <a class="auth-submit auth-submit--link" href="/">{% trans "Return to KlockIN" %}</a>
+            <footer class="auth-footer">{% trans "A Tomeku product" %}</footer>
+        </section>
+    </main>
+</body>
+</html>

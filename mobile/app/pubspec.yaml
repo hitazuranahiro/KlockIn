@@ -1,0 +1,105 @@
+name: klockin
+description: KlockIN by Tomeku, employee attendance and timekeeping.
+publish_to: 'none'
+
+# versionCode must only ever increase. A device in the field was found
+# running versionCode 16 (v1.0.5, sideloaded 2026-09-09) -- higher than
+# either the old gradle file (9) or the old pubspec (11) claimed, so neither
+# was a reliable record. 17 clears the highest version actually observed.
+# Confirm against the Play Console before the first store upload; a device
+# sample is a floor, not proof of the maximum.
+version: 2.0.0+17
+
+environment:
+  sdk: ^3.9.0
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+  cupertino_icons: ^1.0.9
+
+  # State. Plain providers, no codegen: most screens are read-mostly server
+  # data, and AsyncValue's three states map onto the design's
+  # skeleton / error / data without a build_runner in the loop.
+  flutter_riverpod: ^3.0.1
+
+  # Navigation. StatefulShellRoute.indexedStack is the reason -- it keeps a
+  # tab lit across pushed detail screens, which is the design's nav model.
+  go_router: ^16.2.4
+
+  # HTTP. The interceptor stack is the whole networking design.
+  dio: ^5.9.0
+
+  # Tokens live in the Keychain/Keystore, never in shared_preferences.
+  flutter_secure_storage: ^9.2.4
+  shared_preferences: ^2.5.3
+
+  local_auth: ^2.3.0          # biometric re-entry gate, not an auth factor
+  geolocator: ^14.0.2         # coordinates sent with a punch
+  camera: ^0.11.2             # face enrolment photo, and the punch-time presence gate
+  google_mlkit_face_detection: ^0.13.1 # on-device only -- detects a face is
+                                        # present, never whose (no server-side
+                                        # matching exists)
+  cached_network_image: ^3.4.1
+  intl: ^0.20.2
+  package_info_plus: ^8.3.1
+  sqflite: ^2.4.2
+  sqflite_common: ^2.5.6
+  connectivity_plus: ^7.0.0
+  device_info_plus: ^12.3.0
+  android_id: ^0.4.0
+  crypto: ^3.0.6
+  cryptography: ^2.9.0
+  uuid: ^4.5.2
+  workmanager: ^0.10.10
+
+# path_provider_android 2.3.x pulls in `jni`, which adds a CMake/NDK native
+# build to every Android build. Nothing here needs JNI -- it arrives
+# transitively through cached_network_image's cache manager -- and the 2.2.x
+# line is pure Java, so pinning it removes the native toolchain from the
+# build entirely. Revisit if a direct dependency ever genuinely needs JNI.
+dependency_overrides:
+  path_provider_android: ">=2.2.0 <2.3.0"
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+  sqflite_common_ffi: ^2.3.7
+  # Only for InMemorySharedPreferencesAsync in tests -- shared_preferences
+  # itself already depends on this transitively.
+  shared_preferences_platform_interface: ^2.4.2
+
+flutter:
+  uses-material-design: true
+  generate: true
+
+  assets:
+    - Assets/
+    - Assets/maps/
+
+  # Bundled, not fetched. google_fonts downloads at runtime, which costs a
+  # round trip before first paint and breaks typography offline.
+  fonts:
+    - family: Inter
+      fonts:
+        - asset: Assets/fonts/inter/Inter-Regular.ttf
+          weight: 400
+        - asset: Assets/fonts/inter/Inter-Medium.ttf
+          weight: 500
+        - asset: Assets/fonts/inter/Inter-SemiBold.ttf
+          weight: 600
+        - asset: Assets/fonts/inter/Inter-Bold.ttf
+          weight: 700
+        - asset: Assets/fonts/inter/Inter-ExtraBold.ttf
+          weight: 800
+    - family: JetBrainsMono
+      fonts:
+        - asset: Assets/fonts/JetBrainsMono-Regular.ttf
+          weight: 400
+        - asset: Assets/fonts/JetBrainsMono-Medium.ttf
+          weight: 500
+        - asset: Assets/fonts/JetBrainsMono-Bold.ttf
+          weight: 700

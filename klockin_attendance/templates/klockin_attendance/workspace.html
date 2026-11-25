@@ -1,0 +1,159 @@
+{% extends "index.html" %}
+{% load static %}
+{% block content %}
+<link rel="stylesheet" href="{% static 'klockin_attendance/timekeeping.css' %}">
+<main class="klockin-timekeeping">
+    <header class="kd-header">
+        <div>
+            <h1>Timekeeping</h1>
+            <p>Review attendance and export daily time records.</p>
+        </div>
+        {% if profile %}
+            <form class="kd-export" action="{% url 'klockin-monthly-dtr' profile.pk %}" method="get">
+                <div><label for="dtr-month">DTR month</label>
+                    <input id="dtr-month" name="month" type="month" value="{{ month_value }}" required></div>
+                <div><label for="dtr-layout">Layout</label>
+                    <select id="dtr-layout" name="layout">
+                        <option value="am-pm">AM / PM</option>
+                        <option value="first-last">First in / Last out</option>
+                    </select>
+                </div>
+                <button class="kd-action secondary" type="submit">Download my DTR <span aria-hidden="true">↓</span></button>
+            </form>
+        {% endif %}
+    </header>
+    {% if report_error %}<p class="kd-error" role="alert">{{ report_error }}</p>{% endif %}
+    {% if metrics %}
+        <h2 class="kd-section-heading" id="kd-today">Today’s attendance</h2>
+        <dl class="kd-metrics" aria-labelledby="kd-today">
+        {% for label, value in metrics.items %}
+            <div><dt>{{ label }}</dt><dd>{{ value }}</dd></div>
+        {% endfor %}
+        </dl>
+    {% endif %}
+    {% if filters %}
+        <form class="kd-panel kd-filters" method="get" aria-label="Filter attendance records">
+            {{ filters.non_field_errors }}
+            <div>{{ filters.start.label_tag }}{{ filters.start }}{{ filters.start.errors }}</div>
+            <div>{{ filters.end.label_tag }}{{ filters.end }}{{ filters.end.errors }}</div>
+            {% if can_review %}
+                <div>{{ filters.employee.label_tag }}{{ filters.employee }}{{ filters.employee.errors }}</div>
+                <div>{{ filters.department.label_tag }}{{ filters.department }}{{ filters.department.errors }}</div>
+            {% endif %}
+            <div>{{ filters.report.label_tag }}{{ filters.report }}{{ filters.report.errors }}</div>
+            <button class="kd-action" type="submit">Apply filters</button>
+        </form>
+    {% endif %}
+    {% if page is not None %}
+        <section class="kd-panel kd-results" aria-labelledby="kd-results-heading">
+        <header class="kd-results-header">
+            <div><h2 id="kd-results-heading">{{ report_label }}</h2>
+                <p>{{ report_start|date:"M j, Y" }}{% if report_start != report_end %} – {{ report_end|date:"M j, Y" }}{% endif %}</p></div>
+            <span>{{ page.paginator.count }} result{{ page.paginator.count|pluralize }}</span>
+            {% if can_export %}
+                {% url 'klockin-attendance-export' as attendance_export %}
+                <nav class="kd-report-actions" aria-label="Export attendance report">
+                    <a href="{{ attendance_export }}?{{ query_string }}&amp;format=csv">CSV</a>
+                    <a href="{{ attendance_export }}?{{ query_string }}&amp;format=xlsx">Excel</a>
+                    <a href="{{ attendance_export }}?{{ query_string }}&amp;format=pdf">PDF</a>
+                    <a href="{{ attendance_export }}?{{ query_string }}&amp;format=print">Print view</a>
+                </nav>
+            {% endif %}
+        </header>
+        {% if report == "unsynced" %}
+            <p class="kd-queue-note">Counts reflect each device’s last report. Punches that remain on a disconnected phone are unavailable to the server.</p>
+        {% endif %}
+        <div class="kd-table-wrap" tabindex="0" role="region" aria-label="Attendance results table">
+        <table class="kd-table">
+            {% if report == "summary" %}
+                <thead><tr><th>Employee</th><th>Present days</th><th>Absences</th><th>Late days</th><th>Recorded work</th><th>Undertime</th><th>Overtime</th></tr></thead>
+                <tbody>
+                {% for record in summary_rows %}
+                    <tr>
+                        <th scope="row">{{ record.employee.get_full_name }}
+                            {% if record.employee.employee_work_info.department_id %}<small>{{ record.employee.employee_work_info.department_id }}</small>{% endif %}
+                        </th>
+                        <td>{{ record.present }}</td>
+                        <td>{{ record.absent }}</td>
+                        <td>{{ record.late }}</td>
+                        <td>{{ record.worked }}</td>
+                        <td>{{ record.undertime }}</td>
+                        <td>{{ record.overtime }}</td>
+                    </tr>
+                {% empty %}<tr><td colspan="7">No employees match these filters.</td></tr>{% endfor %}
+                </tbody>
+            {% elif report == "unsynced" %}
+                <thead><tr><th>Employee</th><th>Reported pending</th><th>Observed on device</th><th>Received by server</th>{% if can_view_evidence %}<th>Device fingerprint</th>{% endif %}</tr></thead>
+                <tbody>
+                {% for binding in page %}
+                    <tr>
+                        <th scope="row">{{ binding.employee.get_full_name }}</th>
+                        <td>{{ binding.pending_punches|default_if_none:"Unknown" }}</td>
+                        <td>{{ binding.queue_observed_at|date:"M j, Y · H:i"|default:"Unknown" }}</td>
+                        <td>{{ binding.queue_reported_at|date:"M j, Y · H:i"|default:"No report yet" }}</td>
+                        {% if can_view_evidence %}<td>{{ binding.device_fingerprint }}</td>{% endif %}
+                    </tr>
+                {% empty %}<tr><td colspan="{% if can_view_evidence %}5{% else %}4{% endif %}">No device queue reports in this date range.</td></tr>{% endfor %}
+                </tbody>
+            {% elif report == "pending" %}
+                <thead><tr><th>Employee</th><th>Punch time</th><th>Received by server</th><th>Punch</th><th>Source</th>{% if can_view_evidence %}<th>Evidence</th><th>Review</th>{% endif %}</tr></thead>
+                <tbody>
+                {% for punch in page %}
+                    <tr>
+                        <th scope="row">{{ punch.employee.get_full_name }}</th>
+                        <td>{{ punch.punched_at|date:"M j, Y · H:i" }}</td>
+                        <td>{{ punch.server_receive_timestamp|date:"M j, Y · H:i" }}</td>
+                        <td>{{ punch.get_punch_type_display }}</td>
+                        <td>{{ punch.get_source_display }}</td>
+                        {% if can_view_evidence %}
+                            <td><div class="kd-evidence-row">{% include "klockin_attendance/evidence.html" %}</div></td>
+                            <td><a href="{% url 'klockin-punch-review' punch.pk %}">Review punch</a></td>
+                        {% endif %}
+                    </tr>
+                {% empty %}<tr><td colspan="{% if can_view_evidence %}7{% else %}5{% endif %}">No punches await review in this date range.</td></tr>{% endfor %}
+                </tbody>
+            {% elif report == "absent" %}
+                <thead><tr><th>Employee</th><th>Date</th><th>Work status</th><th>Monthly report</th></tr></thead>
+                <tbody>
+                {% for work in page %}
+                    <tr>
+                        <th scope="row">{{ work.employee_id.get_full_name }}</th>
+                        <td>{{ work.date|date:"M j, Y" }}</td>
+                        <td>{{ work.get_work_record_type_display }}</td>
+                        <td><a href="{% url 'klockin-monthly-dtr' work.employee_id_id %}?month={{ work.date|date:'Y-m' }}">Download DTR</a></td>
+                    </tr>
+                {% empty %}<tr><td colspan="4">No absences in this date range.</td></tr>{% endfor %}
+                </tbody>
+            {% else %}
+                <thead><tr><th>Employee</th><th>Date</th><th>First in</th><th>Last out</th><th>Worked</th><th>Source{% if can_view_evidence %} and evidence{% endif %}</th><th>Monthly report</th></tr></thead>
+                <tbody>
+                {% for day in page %}
+                    <tr>
+                        <th scope="row"><a href="{% url 'klockin-attendance-detail' day.pk %}">{{ day.employee_id.get_full_name }}</a>
+                        {% if day.employee_id.employee_work_info.department_id %}<small>{{ day.employee_id.employee_work_info.department_id }}</small>{% endif %}</th>
+                        <td>{{ day.attendance_date|date:"M j, Y" }}</td>
+                        <td>{{ day.attendance_clock_in|time:"H:i"|default:"—" }}</td>
+                        <td>{{ day.attendance_clock_out|time:"H:i"|default:"—" }}</td>
+                        <td>{{ day.attendance_worked_hour|default:"—" }}</td>
+                        <td>{% for punch in day.klockin_punches.all %}
+                            <div class="kd-evidence-row">{{ punch.get_punch_type_display }} · {{ punch.get_source_display }}
+                            {% if can_view_evidence %}{% include "klockin_attendance/evidence.html" %}{% endif %}</div>
+                        {% empty %}Attendance entry{% endfor %}</td>
+                        <td><a href="{% url 'klockin-monthly-dtr' day.employee_id_id %}?month={{ day.attendance_date|date:'Y-m' }}">Download DTR</a></td>
+                    </tr>
+                {% empty %}<tr><td colspan="7">No attendance records in this date range.</td></tr>{% endfor %}
+                </tbody>
+            {% endif %}
+        </table>
+        </div>
+        {% if page.paginator.num_pages > 1 %}
+            <nav class="kd-pagination" aria-label="Attendance pages">
+            {% if page.has_previous %}<a href="?{{ query_string }}&amp;page={{ page.previous_page_number }}">Previous</a>{% endif %}
+            <span>Page {{ page.number }} of {{ page.paginator.num_pages }}</span>
+            {% if page.has_next %}<a href="?{{ query_string }}&amp;page={{ page.next_page_number }}">Next</a>{% endif %}
+            </nav>
+        {% endif %}
+        </section>
+    {% endif %}
+</main>
+{% endblock %}

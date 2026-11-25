@@ -1,0 +1,519 @@
+:root {
+    color-scheme: light;
+    font-family: "Inter", ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    color: #111e35;
+    background: #f1f5fa;
+    --ks-ink: #111e35;
+    --ks-muted: #4d5b70;
+    --ks-blue: #0056d6;
+    --ks-blue-dark: #0045ad;
+    --ks-line: #dce5ef;
+    --ks-tint: #edf4ff;
+}
+
+.ks-setup,
+.ks-setup * {
+    box-sizing: border-box;
+}
+
+.ks-setup {
+    min-width: 0;
+    min-height: 100vh;
+    margin: 0;
+    background: radial-gradient(ellipse at 75% 8%, #e7effc, transparent 52%), #f1f5fa;
+}
+
+.ks-page {
+    width: min(60rem, calc(100% - 3rem));
+    margin-inline: auto;
+    padding-block: clamp(2rem, 7vh, 5rem);
+}
+
+.ks-brand {
+    display: flex;
+    align-items: center;
+    gap: .8rem;
+    margin-block-end: 1.4rem;
+}
+
+.ks-brand img {
+    flex: none;
+    display: block;
+    border-radius: .55rem;
+}
+
+.ks-brand__wordmark {
+    display: grid;
+    gap: .19rem;
+    line-height: 1;
+    font-size: 1.25rem;
+    font-weight: 750;
+    letter-spacing: -.04em;
+}
+
+.ks-brand__wordmark small {
+    color: var(--ks-muted);
+    font-size: .72rem;
+    font-weight: 500;
+    letter-spacing: 0;
+}
+
+.ks-card {
+    display: grid;
+    grid-template-columns: minmax(12rem, 14.5rem) minmax(0, 1fr);
+    align-items: stretch;
+    min-height: 27rem;
+    overflow: hidden;
+    background: #fff;
+    border: 1px solid var(--ks-line);
+    border-radius: 1rem;
+    box-shadow: 0 20px 45px -28px #223d6660;
+}
+
+.ks-progress {
+    padding: 2.2rem 1.25rem;
+    border-inline-end: 1px solid var(--ks-line);
+    background: #f7f9fd;
+}
+
+.ks-progress__caption {
+    margin: 0 .55rem 1.15rem;
+    color: var(--ks-muted);
+    font-size: .77rem;
+    font-weight: 700;
+    line-height: 1.4;
+}
+
+.ks-progress__list {
+    display: grid;
+    gap: .3rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.ks-progress__list li {
+    display: flex;
+    align-items: center;
+    gap: .7rem;
+    min-height: 2.65rem;
+    padding: .4rem .55rem;
+    border-radius: .45rem;
+    color: var(--ks-muted);
+    font-size: .86rem;
+    font-weight: 550;
+    line-height: 1.35;
+}
+
+.ks-progress__number {
+    display: grid;
+    width: 1.65rem;
+    height: 1.65rem;
+    flex: none;
+    place-items: center;
+    background: #fff;
+    border: 1px solid #cedaea;
+    border-radius: .44rem;
+    font-size: .75rem;
+    font-variant-numeric: tabular-nums;
+    font-weight: 650;
+}
+
+.ks-progress__list li[aria-current="step"] {
+    background: var(--ks-tint);
+    color: var(--ks-blue-dark);
+    font-weight: 700;
+}
+
+.ks-progress__list li[aria-current="step"] .ks-progress__number {
+    background: var(--ks-blue);
+    border-color: var(--ks-blue);
+    color: #fff;
+}
+
+.ks-progress__done .ks-progress__number {
+    border-color: #c8dafa;
+    background: #e7f0ff;
+    color: var(--ks-blue-dark);
+}
+
+.ks-panel {
+    min-width: 0;
+    padding: clamp(1.5rem, 4vw, 3rem);
+}
+
+.ks-heading {
+    margin-block-end: 1.8rem;
+}
+
+.ks-heading h1 {
+    margin: 0;
+    font-size: clamp(1.7rem, 4.5vw, 2.28rem);
+    font-weight: 740;
+    line-height: 1.16;
+    letter-spacing: -.045em;
+}
+
+.ks-heading h1:focus {
+    outline: none;
+}
+
+.ks-heading p {
+    max-width: 46ch;
+    margin: .65rem 0 0;
+    color: var(--ks-muted);
+    font-size: .98rem;
+    line-height: 1.55;
+}
+
+.ks-form,
+.ks-section {
+    display: grid;
+    gap: 1.15rem;
+    min-width: 0;
+}
+
+.ks-form--narrow {
+    max-width: 28rem;
+}
+
+.ks-fields {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: start;
+    gap: 1rem 1.05rem;
+}
+
+.ks-field--wide {
+    grid-column: 1 / -1;
+}
+
+.ks-field,
+.ks-check {
+    min-width: 0;
+}
+
+.ks-field {
+    display: grid;
+    gap: .42rem;
+    align-content: start;
+}
+
+.ks-check {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: .55rem;
+}
+
+.ks-field label,
+.ks-check label {
+    font-size: .87rem;
+    font-weight: 650;
+    line-height: 1.35;
+}
+
+.ks-form input:not([type="hidden"], [type="checkbox"]),
+.ks-form select,
+.ks-form textarea {
+    width: 100%;
+    min-width: 0;
+    min-height: 2.7rem;
+    padding: .62rem .7rem;
+    border: 1px solid #b9c7d8;
+    border-radius: .45rem;
+    background: #fff;
+    color: var(--ks-ink);
+    font: inherit;
+    font-size: 1rem;
+}
+
+.ks-form textarea {
+    height: 3.6rem;
+    resize: vertical;
+}
+
+.ks-form select[multiple] {
+    min-height: 4.75rem;
+    padding-block: .32rem;
+}
+
+.ks-form input[type="checkbox"] {
+    width: 1.1rem;
+    height: 1.1rem;
+    margin: 0;
+    accent-color: var(--ks-blue);
+}
+
+.ks-form input[type="file"] {
+    padding: .3rem;
+    font-size: .84rem;
+}
+
+.ks-form input::file-selector-button {
+    margin-inline-end: .55rem;
+    padding: .42rem .6rem;
+    border: 0;
+    border-radius: .28rem;
+    background: var(--ks-tint);
+    color: var(--ks-blue-dark);
+    font: inherit;
+    font-weight: 650;
+    cursor: pointer;
+}
+
+.ks-setup :where(a, button, input, select, textarea):focus-visible {
+    outline: 2px solid var(--ks-blue);
+    outline-offset: 2px;
+}
+
+.ks-setup .ks-form [aria-invalid="true"] {
+    border-color: #a43b39;
+}
+
+.ks-password {
+    position: relative;
+}
+
+.ks-form .ks-password input {
+    padding-inline-end: 4.1rem;
+}
+
+.ks-password__toggle {
+    position: absolute;
+    inset-block: .3rem;
+    inset-inline-end: .3rem;
+    min-width: 3.25rem;
+    padding: 0 .32rem;
+    border: 0;
+    border-radius: .25rem;
+    background: transparent;
+    color: var(--ks-blue-dark);
+    font: inherit;
+    font-size: .8rem;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.ks-password__toggle:hover {
+    background: var(--ks-tint);
+}
+
+.ks-hint,
+.ks-field-error,
+.ks-setup .errorlist {
+    margin: 0;
+    color: var(--ks-muted);
+    font-size: .82rem;
+    line-height: 1.45;
+}
+
+.ks-field-error,
+.ks-setup .errorlist {
+    color: #8f2a29;
+}
+
+.ks-setup .errorlist {
+    padding-inline-start: 1.1rem;
+}
+
+.ks-notice {
+    margin: 0 0 1.2rem;
+    padding: .75rem .8rem;
+    border: 1px solid #e8c0bd;
+    border-radius: .45rem;
+    background: #fff3f1;
+    color: #812928;
+    font-size: .86rem;
+    line-height: 1.45;
+}
+
+.ks-actions,
+.ks-record-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: .6rem;
+}
+
+.ks-actions--footer {
+    padding-block-start: 1.05rem;
+    border-block-start: 1px solid var(--ks-line);
+}
+
+.ks-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 2.7rem;
+    padding: .58rem .94rem;
+    border: 1px solid transparent;
+    border-radius: .44rem;
+    font: inherit;
+    font-size: .87rem;
+    font-weight: 700;
+    line-height: 1.3;
+    text-align: center;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.ks-button--primary {
+    background: var(--ks-blue);
+    color: #fff;
+}
+
+.ks-button--primary:hover {
+    background: var(--ks-blue-dark);
+}
+
+.ks-button--outline,
+.ks-button--text {
+    background: transparent;
+    color: var(--ks-blue-dark);
+}
+
+.ks-button--outline {
+    border-color: #9fbdec;
+}
+
+.ks-button--outline:hover,
+.ks-button--text:hover {
+    background: var(--ks-tint);
+}
+
+.ks-button--remove {
+    color: #8f2a29;
+}
+
+.ks-button--remove:hover {
+    background: #fff1ef;
+}
+
+.ks-button:disabled {
+    cursor: wait;
+    opacity: .65;
+}
+
+.ks-records {
+    margin: 0;
+    padding: 0;
+    border: 1px solid var(--ks-line);
+    border-radius: .55rem;
+    list-style: none;
+}
+
+.ks-records li {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: .25rem .65rem;
+    min-width: 0;
+    min-height: 3.15rem;
+    padding: .32rem .6rem .32rem .85rem;
+    font-size: .89rem;
+    font-weight: 650;
+    overflow-wrap: anywhere;
+}
+
+.ks-records li + li {
+    border-block-start: 1px solid var(--ks-line);
+}
+
+.ks-record__label {
+    display: grid;
+    gap: .25rem;
+}
+
+.ks-record__label small {
+    color: var(--ks-muted);
+    font-weight: 500;
+}
+
+.ks-record-actions {
+    gap: .13rem;
+}
+
+.ks-record-actions .ks-button {
+    min-height: 2.25rem;
+    padding: .32rem .46rem;
+    font-size: .8rem;
+}
+
+@media (max-width: 47rem) {
+    .ks-page {
+        width: min(39rem, calc(100% - 2rem));
+        padding-block: 1.4rem 2rem;
+    }
+
+    .ks-brand {
+        margin-block-end: 1.05rem;
+    }
+
+    .ks-card {
+        grid-template-columns: minmax(0, 1fr);
+        min-height: 0;
+    }
+
+    .ks-progress {
+        padding: .85rem 1.2rem;
+        border-inline-end: 0;
+        border-block-end: 1px solid var(--ks-line);
+    }
+
+    .ks-progress__caption {
+        margin: 0 0 .52rem;
+    }
+
+    .ks-progress__list {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: .28rem;
+    }
+
+    .ks-progress__list li {
+        gap: .35rem;
+        min-height: 1.95rem;
+        padding: .22rem;
+        font-size: .78rem;
+    }
+
+    .ks-progress__number {
+        width: 1.45rem;
+        height: 1.45rem;
+    }
+
+    .ks-progress__list li[aria-current="step"] {
+        padding-inline-end: .48rem;
+    }
+
+    .ks-progress__list li:not([aria-current="step"]) .ks-progress__label {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        overflow: hidden;
+        clip-path: inset(50%);
+        white-space: nowrap;
+    }
+
+    .ks-panel {
+        padding: 1.45rem 1.2rem 1.6rem;
+    }
+}
+
+@media (max-width: 35rem) {
+    .ks-fields {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .ks-heading {
+        margin-block-end: 1.35rem;
+    }
+
+    .ks-actions .ks-button--primary {
+        width: 100%;
+    }
+}

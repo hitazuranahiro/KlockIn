@@ -1,0 +1,54 @@
+{% load i18n static %}
+<link rel="stylesheet" href="{% static 'klockin_attendance/timekeeping.css' %}">
+<section id="klockin-employee-audit-{{ employee.pk }}" class="kd-panel kd-detail kd-embedded" aria-labelledby="klockin-employee-audit-heading-{{ employee.pk }}">
+    <h2 id="klockin-employee-audit-heading-{{ employee.pk }}">{% trans "Attendance audit" %}</h2>
+    <p>{{ employee.get_full_name }}</p>
+    {% for entry in entries %}
+        <article class="kd-audit">
+            <h3>{{ entry.source }} #{{ entry.record_id }} · {{ entry.action }}{% if entry.workday %} · {{ entry.workday|date:"M j, Y" }}{% endif %}</h3>
+            <p>
+                <time datetime="{{ entry.timestamp|date:'c' }}">{{ entry.timestamp|date:"M j, Y · H:i:s T" }}</time>
+                · {% if entry.actor %}{{ entry.actor }}{% else %}{% trans "System or unavailable" %}{% endif %}
+            </p>
+            <p><strong>{% trans "Reason" %}</strong> {{ entry.reason|default:"—"|linebreaksbr }}</p>
+            {% if entry.changes %}
+                <div class="kd-table-wrap">
+                    <table class="kd-table">
+                        <thead>
+                            <tr><th scope="col">{% trans "Field" %}</th><th scope="col">{% trans "Before" %}</th><th scope="col">{% trans "After" %}</th></tr>
+                        </thead>
+                        <tbody>
+                            {% for change in entry.changes %}
+                                <tr>
+                                    <th scope="row">{{ change.field }}</th>
+                                    <td>{{ change.before|linebreaksbr }}</td>
+                                    <td>{{ change.after|linebreaksbr }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <p>{% trans "No attendance field changes in this entry." %}</p>
+            {% endif %}
+        </article>
+    {% empty %}
+        <p>{% trans "No attendance audit history." %}</p>
+    {% endfor %}
+    {% if page.has_other_pages %}
+        {% url 'klockin-employee-attendance-audit' employee.pk as audit_url %}
+        <nav class="kd-pagination" aria-label="{% trans 'Attendance audit pages' %}">
+            {% if page.has_previous %}
+                <a href="{{ audit_url }}?page={{ page.previous_page_number }}"
+                   hx-get="{{ audit_url }}?page={{ page.previous_page_number }}"
+                   hx-target="#klockin-employee-audit-{{ employee.pk }}" hx-swap="outerHTML">{% trans "Newer" %}</a>
+            {% endif %}
+            {% blocktranslate with number=page.number pages=page.paginator.num_pages %}Page {{ number }} of {{ pages }}{% endblocktranslate %}
+            {% if page.has_next %}
+                <a href="{{ audit_url }}?page={{ page.next_page_number }}"
+                   hx-get="{{ audit_url }}?page={{ page.next_page_number }}"
+                   hx-target="#klockin-employee-audit-{{ employee.pk }}" hx-swap="outerHTML">{% trans "Older" %}</a>
+            {% endif %}
+        </nav>
+    {% endif %}
+</section>

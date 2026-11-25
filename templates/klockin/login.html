@@ -1,0 +1,51 @@
+{% extends "klockin/auth.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Sign in" %}{% endblock %}
+{% block content %}
+    <h1 id="auth-title">{% trans "Sign in" %}</h1>
+    <form method="post" class="auth-form">
+        {% csrf_token %}
+        <div class="auth-field">
+            <label for="username">{% trans "Username" %}</label>
+            <input type="text" id="username" name="username" value="{{ form_username }}"
+                   autocomplete="username" autocapitalize="none" spellcheck="false"
+                   {% if field_errors.username %}autofocus aria-invalid="true" aria-describedby="username-error"{% elif not form_username %}autofocus{% endif %}>
+            {% if field_errors.username %}
+                <p id="username-error" class="auth-error" role="alert">{{ field_errors.username }}</p>
+            {% endif %}
+        </div>
+        <div class="auth-field">
+            <label for="password">{% trans "Password" %}</label>
+            <div class="auth-password">
+                <input type="password" id="password" name="password" autocomplete="current-password"
+                       {% if field_errors.password %}aria-invalid="true" aria-describedby="password-error"{% endif %}
+                       {% if form_username and not field_errors.username %}autofocus{% endif %}>
+                {% include "klockin/password_toggle.html" with password_id="password" %}
+            </div>
+            {% if field_errors.password %}
+                <p id="password-error" class="auth-error" role="alert">{{ field_errors.password }}</p>
+            {% endif %}
+        </div>
+        {% if not initialize_database %}
+            <a class="auth-form-link" href="{% url 'forgot-password' %}">{% trans "Forgot password?" %}</a>
+        {% endif %}
+        <button type="submit" class="auth-submit">{% trans "Sign in" %}</button>
+    </form>
+    {% if initialize_database %}
+        <div class="auth-setup">
+            <a href="{% url 'initialize-database' %}">{% trans "Initialize database" %}</a>
+            <details>
+                <summary>{% trans "Load demo data" %}</summary>
+                <form method="post" action="{% url 'load-demo-database' %}" class="auth-form">
+                    {% csrf_token %}
+                    <div class="auth-field">
+                        <label for="load_data_password">{% trans "Database authentication password" %}</label>
+                        <input type="password" id="load_data_password" name="load_data_password" required>
+                    </div>
+                    <button type="submit" class="auth-submit">{% trans "Authenticate" %}</button>
+                </form>
+            </details>
+        </div>
+    {% endif %}
+{% endblock %}

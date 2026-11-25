@@ -1,0 +1,113 @@
+# GitHub-backed Dokploy service. Dokploy Traefik handles the public HTTPS route.
+x-klockin-env: &klockin-env
+  DEBUG: "0"
+  HORILLA_ENV: production
+  DB_HOST: db
+  SECRET_KEY: ${SECRET_KEY:?Set SECRET_KEY in Dokploy Environment}
+  DB_INIT_PASSWORD: ${DB_INIT_PASSWORD:?Set DB_INIT_PASSWORD in Dokploy Environment}
+  ALLOWED_HOSTS: ${ALLOWED_HOSTS:?Set ALLOWED_HOSTS in Dokploy Environment}
+  CSRF_TRUSTED_ORIGINS: ${CSRF_TRUSTED_ORIGINS:?Set CSRF_TRUSTED_ORIGINS in Dokploy Environment}
+  DATABASE_URL: "postgresql://klockin:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in Dokploy Environment}@db:5432/klockin"
+  REDIS_URL: "redis://:${REDIS_PASSWORD:?Set REDIS_PASSWORD in Dokploy Environment}@redis:6379/0"
+  KLOCKIN_EVIDENCE_KEYS: ${KLOCKIN_EVIDENCE_KEYS:?Set KLOCKIN_EVIDENCE_KEYS in Dokploy Environment}
+  KLOCKIN_SELFIE_ROOT: /app/private-media/attendance
+  KLOCKIN_UPLOAD_STORAGE: ${KLOCKIN_UPLOAD_STORAGE:-local}
+  HORILLA_TRUSTED_PROXIES: ${HORILLA_TRUSTED_PROXIES-dokploy-traefik}
+  SECURE_SSL_REDIRECT: "1"
+
+services:
+  web:
+    build: .
+    env_file: [.env]
+    environment:
+      <<: *klockin-env
+      # Only the scheduler's health check requires it to register background jobs.
+      HORILLA_REQUIRE_SCHEDULER: "0"
+    expose: ["8000"]
+    volumes:
+      - media:/app/media
+      - private_attendance:/app/private-media/attendance
+      - staticfiles:/app/staticfiles
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - >-
+          host="$${ALLOWED_HOSTS%%,*}";
+          curl -fsS -H "Host: $${host#.}" -H "X-Forwarded-Proto: https"
+          http://127.0.0.1:8000/health/ >/dev/null
+      interval: 30s
+      timeout: 10s
+      start_period: 10m
+      retries: 3
+    restart: unless-stopped
+
+  scheduler:
+    build: .
+    command: ["python", "manage.py", "run_scheduler"]
+    env_file: [.env]
+    environment:
+      <<: *klockin-env
+      HORILLA_SKIP_RELEASE_TASKS: "1"
+    volumes:
+      - media:/app/media
+      - private_attendance:/app/private-media/attendance
+    depends_on:
+      web:
+        condition: service_healthy
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - >-
+          host="$${ALLOWED_HOSTS%%,*}";
+          curl -fsS -H "Host: $${host#.}" -H "X-Forwarded-Proto: https"
+          http://web:8000/ready/ | python -c
+          'import json, sys; data = json.load(sys.stdin);
+          sys.exit(data.get("scheduler") != "ok")'
+      interval: 30s
+      timeout: 10s
+      start_period: 2m
+      retries: 3
+    deploy:
+      replicas: 1
+    restart: unless-stopped
+
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: klockin
+      POSTGRES_USER: klockin
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in Dokploy Environment}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "klockin", "-d", "klockin"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD:?Set REDIS_PASSWORD in Dokploy Environment}
+    command: ["sh", "-c", "exec redis-server --appendonly yes --requirepass \"$$REDIS_PASSWORD\""]
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD-SHELL", 'REDISCLI_AUTH="$$REDIS_PASSWORD" redis-cli ping | grep -q PONG']
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  redis_data:
+  media:
+  private_attendance:
+  staticfiles:

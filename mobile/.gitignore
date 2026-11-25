@@ -1,0 +1,14 @@
+.DS_Store
+.dart_tool/
+.packages
+build/
+.flutter-plugins
+.flutter-plugins-dependencies
+*.iml
+.idea/
+!/app/lib/
+!/app/lib/**
+/app/lib/l10n/app_localizations*.dart
+/app/android/local.properties
+/app/android/.gradle/
+/docs/screenshots/
