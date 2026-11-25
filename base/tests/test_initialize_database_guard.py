@@ -23,6 +23,7 @@ blocked legitimate first-run setup on a production deployment. A test asserting
 404 in production would re-assert that bug.
 """
 
+from django.templatetags.static import static
 from django.test import TestCase
 from django.urls import reverse
 
@@ -52,6 +53,16 @@ class InitializedDatabaseRejectsSetupFlow(TestCase):
         # superuser has an employee attached, so the guard is not armed without
         # this.
         make_employee(company=company, email="root@test.horilla", user=user)
+        self.admin = user
+
+    def test_setup_department_form_uses_shared_wizard_styles(self):
+        self.client.force_login(self.admin)
+        response = self.client.get(
+            reverse("initialize-database-department"), headers={"hx-request": "true"}
+        )
+
+        self.assertContains(response, 'id="initializeDepartment" class="ks-section"')
+        self.assertContains(response, 'class="ks-form"')
 
     def test_step_views_do_not_serve_the_wizard(self):
         for name in STEP_URL_NAMES:
@@ -106,6 +117,14 @@ class InitializedDatabaseRejectsSetupFlow(TestCase):
 class UninitializedDatabaseAllowsSetupFlow(TestCase):
     """A genuinely fresh install must still be able to complete setup."""
 
+    def test_setup_shell_loads_the_assets_for_its_dynamic_steps(self):
+        response = self.client.get(reverse("initialize-database"))
+
+        self.assertContains(response, f'href="{static("klockin/setup.css")}"')
+        self.assertContains(response, f'src="{static("klockin/setup.js")}"')
+        self.assertContains(response, 'id="ohAuthCard" class="ks-card"')
+        self.assertContains(response, 'aria-current="step"')
+
     def test_user_step_needs_the_init_password_first(self):
         self.assertFalse(HorillaUser.objects.exists())
 
@@ -135,3 +154,5 @@ class UninitializedDatabaseAllowsSetupFlow(TestCase):
         )
 
         self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'class="ks-form"')
+        self.assertContains(response, "Create an administrator")
