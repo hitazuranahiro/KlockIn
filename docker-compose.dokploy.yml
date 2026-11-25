@@ -42,7 +42,8 @@ services:
           http://127.0.0.1:8000/health/ >/dev/null
       interval: 30s
       timeout: 10s
-      start_period: 10m
+      # Allow a fresh database to finish migrations before Gunicorn binds.
+      start_period: 25m
       retries: 3
     restart: unless-stopped
 
