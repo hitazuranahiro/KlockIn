@@ -564,6 +564,7 @@ class PayslipPDFAPIView(APIView):
         # fill template context like original view
         data["month_start_name"] = month_start_name
         data["month_end_name"] = month_end_name
+        data["total_calendar_days"] = (end_date - start_date).days + 1
         data["formatted_start_date"] = formatted_start_date
         data["formatted_end_date"] = formatted_end_date
         data["employee"] = payslip.employee_id

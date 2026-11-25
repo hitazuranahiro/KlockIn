@@ -1379,3 +1379,16 @@ class ExportPolishTests(TestCase):
         from report.chart_render import render_chart_png
 
         self.assertIsNone(render_chart_png({"categories": [], "series": []}))
+
+    def test_chart_render_produces_png_without_native_reportlab_backend(self):
+        from report.chart_render import render_chart_png
+
+        for chart_type in ("bar", "line", "donut"):
+            with self.subTest(chart_type=chart_type):
+                png = render_chart_png({
+                    "type": chart_type,
+                    "categories": ["A", "B"],
+                    "series": [{"name": "Totals", "data": [1, 2]}],
+                })
+                self.assertIsNotNone(png)
+                self.assertTrue(png.startswith(b"\x89PNG\r\n\x1a\n"))

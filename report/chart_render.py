@@ -11,10 +11,10 @@ objects in the Excel export (see report/export.py).
 from __future__ import annotations
 
 import logging
-from io import BytesIO
 from typing import Any, Optional
 
-from reportlab.graphics import renderPM
+import pymupdf
+from reportlab.graphics import renderPDF
 from reportlab.graphics.charts.barcharts import VerticalBarChart
 from reportlab.graphics.charts.legends import Legend
 from reportlab.graphics.charts.lineplots import LinePlot
@@ -74,9 +74,8 @@ def render_chart_png(
         else:
             drawing = _bar_drawing(categories, series, width, height)
 
-        buf = BytesIO()
-        renderPM.drawToFile(drawing, buf, fmt="PNG", dpi=150)
-        return buf.getvalue()
+        with pymupdf.open(stream=renderPDF.drawToString(drawing), filetype="pdf") as chart_pdf:
+            return chart_pdf[0].get_pixmap(dpi=150).tobytes("png")
     except Exception:
         # A chart that fails to render used to return None, which callers
         # treat as "no data" -- so a genuine rendering failure surfaced on a
