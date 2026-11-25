@@ -232,7 +232,7 @@
         </div>
 
         <!-- View: the list, a column per date, or the summary dashboard. The same icon
-             buttons as the employee list / kanban switch (generic/horilla_nav.html). -->
+             buttons as the employee list / kanban switch (generic/klockin_nav.html). -->
         <div class="ms-view-group text-[#000]" role="group" aria-label="{% trans 'View' %}">
           <button type="button" data-view="list" title="{% trans 'List' %}"
                   class="tab-btn bg-white px-4 py-2 rounded-md text-xs flex items-center gap-2 border transition duration-300 border-primary-500 ms-view-btn{% if view == 'list' %} oh-view-btn--active{% endif %}"
@@ -779,7 +779,7 @@ var MS_MULTI_FIELDS = [
 // whatever the server actually renders for it, which is exactly what kept
 // "Clear all" looking like it had done nothing: the server-side state was
 // genuinely reset, but the browser quietly refilled the input anyway).
-// Group By levels -- the Employee directory's own behaviour (generic/horilla_nav.html): numbered
+// Group By levels -- the Employee directory's own behaviour (generic/klockin_nav.html): numbered
 // rows, a field can be picked once, "+ Add level" up to the number of fields, a preview of the chain.
 function ngbRenumber() {
   $('#nestedGroupByLevels .nested-group-by-row').each(function (i) {

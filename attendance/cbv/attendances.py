@@ -306,7 +306,7 @@ class _AttendanceTabNavBase(HorillaNavView):
     filter_instance = AttendanceFilters()
     filter_form_context_name = "form"
     # Opts Attendance into the same modern slide-over filter panel built
-    # for Employee (horilla_nav.html's .oh-filter-modern styles) --
+    # for Employee (klockin_nav.html's .oh-filter-modern styles) --
     # AttendanceFilters.ajax_fields carries the AJAX-loaded comboboxes
     # this needs.
     modern_filter = True

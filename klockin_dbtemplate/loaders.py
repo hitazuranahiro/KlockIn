@@ -50,7 +50,7 @@ class Loader(BaseLoader):
     def _get_request(self):
         """Retrieve the current request from thread-local storage."""
         try:
-            from klockin.horilla_middlewares import _thread_locals
+            from klockin.klockin_middlewares import _thread_locals
 
             return getattr(_thread_locals, "request", None)
         except ImportError:

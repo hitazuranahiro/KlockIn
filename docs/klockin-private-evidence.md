@@ -23,7 +23,7 @@ With production Compose and the web service stopped, run each command in a one-o
 
 ```sh
 docker compose -f docker-compose.yml -f docker-compose.prod.yml run --rm --no-deps \
-  -e HORILLA_SKIP_RELEASE_TASKS=1 web python manage.py import_private_evidence_to_s3 \
+  -e KLOCKIN_SKIP_RELEASE_TASKS=1 web python manage.py import_private_evidence_to_s3 \
   --source /app/private-media/attendance --apply
 ```
 

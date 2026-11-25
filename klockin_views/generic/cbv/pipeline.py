@@ -6,7 +6,7 @@ from django.db import models
 from django.views.generic import ListView
 from django_filters import FilterSet
 
-from klockin.horilla_middlewares import _thread_locals
+from klockin.klockin_middlewares import _thread_locals
 from klockin_views.cbv_methods import get_short_uuid
 
 

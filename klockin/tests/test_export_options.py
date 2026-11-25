@@ -14,7 +14,7 @@ from django.http import HttpResponse
 from django.test import RequestFactory, SimpleTestCase
 from openpyxl import Workbook, load_workbook
 
-from klockin.horilla_middlewares import ExportOptionsMiddleware
+from klockin.klockin_middlewares import ExportOptionsMiddleware
 
 XLSX_TYPE = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
 
@@ -109,7 +109,7 @@ class ExportOptionsMiddlewareTests(SimpleTestCase):
             )
 
     @mock.patch(
-        "klockin.horilla_middlewares.render_to_string",
+        "klockin.klockin_middlewares.render_to_string",
         return_value="<html><body><table><tr><td>x</td></tr></table></body></html>",
     )
     def test_xlsx_to_pdf(self, render):

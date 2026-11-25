@@ -1,7 +1,7 @@
 """CBV decorators for offboarding permission checks."""
 
 from klockin.decorators import decorator_with_arguments
-from klockin.horilla_middlewares import _thread_locals
+from klockin.klockin_middlewares import _thread_locals
 from klockin.methods import handle_no_permission
 from offboarding.models import (
     Offboarding,

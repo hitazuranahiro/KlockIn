@@ -36,7 +36,7 @@ from base.methods import reload_queryset
 from employee.filters import EmployeeFilter
 from employee.models import Employee, EmployeeBankDetails
 from klockin_auth.models import HorillaUser
-from klockin_widgets.widgets.horilla_multi_select_field import HorillaMultiSelectField
+from klockin_widgets.widgets.klockin_multi_select_field import HorillaMultiSelectField
 from klockin_widgets.widgets.select_widgets import HorillaMultiSelectWidget
 from onboarding.models import (
     CandidateStage,
@@ -340,7 +340,7 @@ class OnboardingViewStageForm(ModelForm):
         Render the form fields as HTML table rows with Bootstrap styling.
         """
         context = {"form": self}
-        table_html = render_to_string("horilla_form.html", context)
+        table_html = render_to_string("klockin_form.html", context)
         return table_html
 
     def clean(self):

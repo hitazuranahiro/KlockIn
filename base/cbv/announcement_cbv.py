@@ -157,7 +157,7 @@ class AnnouncementDetailView(HorillaDetailedView):
     def get_context_data(self, **kwargs):
         import ast
 
-        from klockin.horilla_middlewares import _thread_locals
+        from klockin.klockin_middlewares import _thread_locals
 
         context = super().get_context_data(**kwargs)
 

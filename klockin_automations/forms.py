@@ -14,7 +14,7 @@ from klockin.model_paths import model_paths
 from klockin_automations.methods.methods import generate_choices
 from klockin_automations.models import MODEL_CHOICES, MailAutomation
 from klockin_widgets.forms import default_select_option_template
-from klockin_widgets.widgets.horilla_multi_select_field import HorillaMultiSelectField
+from klockin_widgets.widgets.klockin_multi_select_field import HorillaMultiSelectField
 from klockin_widgets.widgets.select_widgets import HorillaMultiSelectWidget
 
 

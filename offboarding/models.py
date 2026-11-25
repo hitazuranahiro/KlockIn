@@ -14,11 +14,11 @@ from django.utils.timesince import timesince
 from django.utils.translation import gettext_lazy as _
 from django.utils.translation import gettext_noop
 
-from base.horilla_company_manager import HorillaCompanyManager
+from base.klockin_company_manager import HorillaCompanyManager
 from base.models import Company
 from employee.models import Employee
-from klockin import horilla_middlewares
-from klockin.horilla_middlewares import _thread_locals
+from klockin import klockin_middlewares
+from klockin.klockin_middlewares import _thread_locals
 from klockin.methods import get_horilla_model_class
 from klockin.models import HorillaModel, upload_path
 from klockin_audit.models import HorillaAuditInfo, HorillaAuditLog
@@ -810,7 +810,7 @@ class OffboardingNote(HorillaModel):
         ordering = ["-created_at"]
 
     def save(self, *args, **kwargs):
-        request = getattr(horilla_middlewares._thread_locals, "request", None)
+        request = getattr(klockin_middlewares._thread_locals, "request", None)
         if request:
             updated_by = request.user.employee_get
             self.note_by = updated_by

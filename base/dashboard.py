@@ -52,7 +52,7 @@ def _resolve_checklist_company(request):
       2. The first company in the DB (fresh install with no session yet)
       3. None  (no company exists — the "Company" step is the first to do)
     """
-    from klockin.horilla_middlewares import get_selected_company
+    from klockin.klockin_middlewares import get_selected_company
 
     company_id = get_selected_company()
     if company_id and company_id != "all":

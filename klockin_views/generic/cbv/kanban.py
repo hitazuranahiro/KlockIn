@@ -17,7 +17,7 @@ from klockin_views.generic.cbv.views import HorillaCardView
 class HorillaKanbanView(HorillaCardView):
     group_key: str = ""
     group_filter_class = None
-    template_name: str = "generic/horilla_kanban_view.html"
+    template_name: str = "generic/klockin_kanban_view.html"
     kanban_attrs: str = ""
     instance_order_by: str = "sequence"
     group_order_by: str = "sequence"

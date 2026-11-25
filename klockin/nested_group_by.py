@@ -8,7 +8,7 @@ from django.db.models.functions import RowNumber
 from django.utils.translation import gettext as _
 
 from klockin.group_by import _page_from_list, _page_of_groupers, _resolve_fk_groupers
-from klockin.horilla_middlewares import _thread_locals
+from klockin.klockin_middlewares import _thread_locals
 
 
 def _ordered_keep_none(values):

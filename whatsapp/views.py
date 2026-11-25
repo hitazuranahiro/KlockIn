@@ -19,7 +19,7 @@ from django.views.decorators.csrf import csrf_exempt
 from base.models import Announcement, IntegrationApps
 from employee.models import Employee
 from klockin.decorators import check_integration_enabled, login_required
-from klockin.horilla_middlewares import _thread_locals
+from klockin.klockin_middlewares import _thread_locals
 from notifications.signals import notify
 from whatsapp.flows import (
     get_asset_category_flow_json,

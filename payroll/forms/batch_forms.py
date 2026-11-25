@@ -18,7 +18,7 @@ from base.forms import ModelForm
 from employee.filters import EmployeeFilter
 from employee.models import Employee
 from klockin_widgets.forms import HorillaForm
-from klockin_widgets.widgets.horilla_multi_select_field import HorillaMultiSelectField
+from klockin_widgets.widgets.klockin_multi_select_field import HorillaMultiSelectField
 from klockin_widgets.widgets.select_widgets import HorillaMultiSelectWidget
 from payroll.models.models import PayPeriodSettings
 from payroll.models.payroll_batch import _ordinal
@@ -130,14 +130,14 @@ class PayPeriodSettingsForm(ModelForm):
         pay period stays in the list but cannot be picked (one setting per company).
         """
         from base.models import Company
-        from klockin import horilla_middlewares
+        from klockin import klockin_middlewares
 
         taken = PayPeriodSettings.objects.entire().filter(company_id__isnull=False)
         if self.instance.pk:
             taken = taken.exclude(pk=self.instance.pk)
         self.taken_company_ids = set(taken.values_list("company_id", flat=True))
         try:
-            active = horilla_middlewares.get_selected_company()
+            active = klockin_middlewares.get_selected_company()
         except Exception:
             active = None
         companies = Company.objects.all()

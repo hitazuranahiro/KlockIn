@@ -1,5 +1,5 @@
 """
-The HORILLA_ALLOW_PYTHON_TAX_FORMULAS switch.
+The KLOCKIN_ALLOW_PYTHON_TAX_FORMULAS switch.
 
 A Python tax formula is code that runs on the server for every payslip, so new
 ones are opt-in. The switch gates *new* code only: creating a Python-mode
@@ -28,7 +28,7 @@ def _admin_client(testcase):
     testcase.hx = {"HTTP_HX_REQUEST": "true"}
 
 
-@override_settings(HORILLA_ALLOW_PYTHON_TAX_FORMULAS=False)
+@override_settings(KLOCKIN_ALLOW_PYTHON_TAX_FORMULAS=False)
 class WhenPythonFormulasAreOffFormTests(TestCase):
     def test_helper_reports_off(self):
         self.assertFalse(python_formulas_enabled())
@@ -86,7 +86,7 @@ class WhenPythonFormulasAreOffFormTests(TestCase):
         self.assertEqual(run_tax_code(WORKING, 100000), 10000.0)
 
 
-@override_settings(HORILLA_ALLOW_PYTHON_TAX_FORMULAS=False)
+@override_settings(KLOCKIN_ALLOW_PYTHON_TAX_FORMULAS=False)
 class WhenPythonFormulasAreOffEndpointTests(TestCase):
     def setUp(self):
         _admin_client(self)
@@ -117,7 +117,7 @@ class WhenPythonFormulasAreOffEndpointTests(TestCase):
         self.assertFalse(response.json()["ok"])
 
 
-@override_settings(HORILLA_ALLOW_PYTHON_TAX_FORMULAS=True)
+@override_settings(KLOCKIN_ALLOW_PYTHON_TAX_FORMULAS=True)
 class WhenPythonFormulasAreOnTests(TestCase):
     def setUp(self):
         _admin_client(self)
@@ -151,7 +151,7 @@ class WhenPythonFormulasAreOnTests(TestCase):
 CRLF = WORKING.replace("\n", "\r\n")
 
 
-@override_settings(HORILLA_ALLOW_PYTHON_TAX_FORMULAS=False)
+@override_settings(KLOCKIN_ALLOW_PYTHON_TAX_FORMULAS=False)
 class LineEndingTests(TestCase):
     """Browsers submit a textarea with Windows line endings."""
 
@@ -185,32 +185,32 @@ class AdminFormTests(TestCase):
         data.update(changes)
         return FilingStatusAdminForm(data, instance=instance)
 
-    @override_settings(HORILLA_ALLOW_PYTHON_TAX_FORMULAS=False)
+    @override_settings(KLOCKIN_ALLOW_PYTHON_TAX_FORMULAS=False)
     def test_editing_a_formula_is_refused_while_off(self):
         status = make_filing_status("Coded", use_py=True, python_code=WORKING)
         self.assertFalse(self._form(status, python_code=EDITED).is_valid())
 
-    @override_settings(HORILLA_ALLOW_PYTHON_TAX_FORMULAS=False)
+    @override_settings(KLOCKIN_ALLOW_PYTHON_TAX_FORMULAS=False)
     def test_turning_python_mode_on_is_refused_while_off(self):
         status = make_filing_status("Slabs", use_py=False)
         self.assertFalse(
             self._form(status, use_py=True, python_code=WORKING).is_valid()
         )
 
-    @override_settings(HORILLA_ALLOW_PYTHON_TAX_FORMULAS=False)
+    @override_settings(KLOCKIN_ALLOW_PYTHON_TAX_FORMULAS=False)
     def test_other_fields_still_save_while_off(self):
         status = make_filing_status("Coded", use_py=True, python_code=WORKING)
         form = self._form(status, filing_status="Coded renamed")
         self.assertTrue(form.is_valid(), form.errors.as_text())
 
-    @override_settings(HORILLA_ALLOW_PYTHON_TAX_FORMULAS=True)
+    @override_settings(KLOCKIN_ALLOW_PYTHON_TAX_FORMULAS=True)
     def test_code_is_checked_when_on(self):
         status = make_filing_status("Coded", use_py=True, python_code=WORKING)
         form = self._form(status, python_code="import os\n" + WORKING)
         self.assertFalse(form.is_valid())
         self.assertIn("python_code", form.errors)
 
-    @override_settings(HORILLA_ALLOW_PYTHON_TAX_FORMULAS=True)
+    @override_settings(KLOCKIN_ALLOW_PYTHON_TAX_FORMULAS=True)
     def test_a_valid_edit_saves_when_on(self):
         status = make_filing_status("Coded", use_py=True, python_code=WORKING)
         form = self._form(status, python_code=EDITED)

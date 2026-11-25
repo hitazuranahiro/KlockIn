@@ -1,5 +1,5 @@
 """
-HORILLA_FIRST_DAY_OF_WEEK must reach every "This Week" calculation, not just
+KLOCKIN_FIRST_DAY_OF_WEEK must reach every "This Week" calculation, not just
 the generic Quick Date menu: the dashboards' presets, the reports, and the
 PMS / leave / roster filters.
 """
@@ -34,12 +34,12 @@ DASHBOARD_TEMPLATES = [
 
 
 class FirstDayOfWeekContextTests(SimpleTestCase):
-    @override_settings(HORILLA_FIRST_DAY_OF_WEEK="6")
+    @override_settings(KLOCKIN_FIRST_DAY_OF_WEEK="6")
     def test_context_processor_exposes_the_setting(self):
         context = first_day_of_week(RequestFactory().get("/"))
         self.assertEqual(context, {"first_day_of_week": 6})
 
-    @override_settings(HORILLA_FIRST_DAY_OF_WEEK="")
+    @override_settings(KLOCKIN_FIRST_DAY_OF_WEEK="")
     def test_context_processor_falls_back_to_monday(self):
         context = first_day_of_week(RequestFactory().get("/"))
         self.assertEqual(context, {"first_day_of_week": 1})
@@ -49,13 +49,13 @@ class FirstDayOfWeekContextTests(SimpleTestCase):
         self.assertIn("base.context_processors.first_day_of_week", processors)
 
     def test_week_start_for_the_reported_case(self):
-        with override_settings(HORILLA_FIRST_DAY_OF_WEEK="6"):
+        with override_settings(KLOCKIN_FIRST_DAY_OF_WEEK="6"):
             self.assertEqual(week_start(SUNDAY), date(2026, 11, 7))
             # Datetimes (some filters use datetime.today()) work too.
             self.assertEqual(
                 week_start(datetime(2026, 11, 8, 15, 30)), datetime(2026, 11, 7, 15, 30)
             )
-        with override_settings(HORILLA_FIRST_DAY_OF_WEEK="1"):
+        with override_settings(KLOCKIN_FIRST_DAY_OF_WEEK="1"):
             self.assertEqual(week_start(SUNDAY), date(2026, 11, 2))
 
 

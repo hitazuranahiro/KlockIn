@@ -12,7 +12,7 @@ from django.template.loader import render_to_string
 from django.utils.safestring import SafeText
 from django.utils.translation import gettext_lazy as _
 
-from klockin.horilla_middlewares import _thread_locals
+from klockin.klockin_middlewares import _thread_locals
 from klockin_views import models
 from klockin_views.cbv_methods import (
     BOOLEAN_CHOICES,
@@ -54,7 +54,7 @@ class ToggleColumnForm(forms.Form):
             if columns and column == columns[0]:
                 initial = True
             # column[0] doubles as the actual <th> header content (rendered
-            # unescaped in horilla_list_table.html), so for a column whose
+            # unescaped in klockin_list_table.html), so for a column whose
             # header is a whole HTML button/icon rather than plain text
             # (e.g. a per-stage "+ Task" action column), it is NOT a usable
             # checkbox label as-is -- stripping tags isn't enough either,

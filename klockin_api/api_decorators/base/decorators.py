@@ -11,7 +11,7 @@ from rest_framework.response import Response
 from base.models import MultipleApprovalManagers
 from employee.models import Employee, EmployeeWorkInformation
 from klockin.decorators import check_manager
-from klockin.horilla_middlewares import _thread_locals
+from klockin.klockin_middlewares import _thread_locals
 from klockin_views.cbv_methods import decorator_with_arguments
 
 

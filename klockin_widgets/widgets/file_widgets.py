@@ -38,5 +38,5 @@ def patch_clearable_file_input():
 
     forms.ClearableFileInput.get_context = get_context
     forms.ClearableFileInput.template_name = (
-        "klockin_widgets/horilla_clearable_file_input.html"
+        "klockin_widgets/klockin_clearable_file_input.html"
     )

@@ -11,7 +11,7 @@ from django.core.exceptions import FieldDoesNotExist
 from django.db import models as django_models
 from django.http import QueryDict
 
-from base.templatetags.horillafilters import app_installed
+from base.templatetags.klockinfilters import app_installed
 from employee.models import Employee
 from klockin.model_paths import model_paths
 from klockin.models import HorillaModel

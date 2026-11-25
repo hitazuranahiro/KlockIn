@@ -7,7 +7,7 @@ from rest_framework import status
 from rest_framework.response import Response
 
 from accessibility.methods import check_is_accessible
-from klockin.horilla_middlewares import _thread_locals
+from klockin.klockin_middlewares import _thread_locals
 from klockin.methods import get_accessibility_cache_key
 from klockin_views.cbv_methods import decorator_with_arguments
 

@@ -6,7 +6,7 @@ from base.methods import reload_queryset
 from employee.filters import EmployeeFilter
 from employee.models import Employee
 from klockin_documents.models import Document, DocumentRequest
-from klockin_widgets.widgets.horilla_multi_select_field import HorillaMultiSelectField
+from klockin_widgets.widgets.klockin_multi_select_field import HorillaMultiSelectField
 from klockin_widgets.widgets.select_widgets import HorillaMultiSelectWidget
 
 

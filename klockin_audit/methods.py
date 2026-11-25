@@ -12,6 +12,7 @@ from django.utils.translation import gettext as _
 
 from klockin.decorators import apply_decorators
 from klockin.http.response import HorillaRedirect
+from klockin_auth.system_accounts import is_system_bot
 
 
 class Bot:
@@ -181,7 +182,7 @@ def get_diff(instance):
             continue
         history_user = newer.history_user
         updated_by = Bot()
-        if history_user is not None and history_user.username != "Horilla Bot":
+        if history_user is not None and not is_system_bot(history_user):
             updated_by = getattr(history_user, "employee_get", None) or history_user
         delta_changes.append(
             {

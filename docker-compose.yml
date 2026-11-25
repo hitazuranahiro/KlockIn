@@ -21,7 +21,7 @@ services:
       - DEBUG=1
       - DB_HOST=db
       # Believe X-Forwarded-For only from the nginx service (klockin/client_ip.py)
-      - HORILLA_TRUSTED_PROXIES=nginx
+      - KLOCKIN_TRUSTED_PROXIES=nginx
       - SECRET_KEY=dev-secret-key-change-in-production
       - ALLOWED_HOSTS=${KLOCKIN_DEV_HOSTS:-localhost,127.0.0.1}
       - CSRF_TRUSTED_ORIGINS=${KLOCKIN_DEV_ORIGINS:-http://localhost:8000,http://127.0.0.1:8000}
@@ -59,7 +59,7 @@ services:
       - DEBUG=1
       - DB_HOST=db
       # Believe X-Forwarded-For only from the nginx service (klockin/client_ip.py)
-      - HORILLA_TRUSTED_PROXIES=nginx
+      - KLOCKIN_TRUSTED_PROXIES=nginx
       - SECRET_KEY=dev-secret-key-change-in-production
       - ALLOWED_HOSTS=${KLOCKIN_DEV_HOSTS:-localhost,127.0.0.1}
       - DATABASE_URL=postgres://klockin_user:klockin_dev@db:5432/klockin_db
@@ -68,7 +68,7 @@ services:
       - REDIS_URL=redis://:klockin_dev@redis:6379/0
       # web owns migrate/collectstatic; racing them from here can deadlock on
       # DDL and would wipe STATIC_ROOT while web is serving from it.
-      - HORILLA_SKIP_RELEASE_TASKS=1
+      - KLOCKIN_SKIP_RELEASE_TASKS=1
     depends_on:
       db:
         condition: service_healthy

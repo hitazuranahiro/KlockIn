@@ -14,10 +14,10 @@ from django.utils import timezone
 from django.utils.html import escape
 from django.utils.translation import gettext_lazy as _
 
-from base.horilla_company_manager import HorillaCompanyManager
+from base.klockin_company_manager import HorillaCompanyManager
 from base.models import Company, Department, JobPosition
 from employee.models import BonusPoint, Employee
-from klockin.horilla_middlewares import _thread_locals
+from klockin.klockin_middlewares import _thread_locals
 from klockin.models import HorillaModel
 from klockin_audit.methods import get_diff
 from klockin_audit.models import HorillaAuditInfo, HorillaAuditLog

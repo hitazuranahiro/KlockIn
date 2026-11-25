@@ -16,7 +16,7 @@ from django.utils.translation import gettext_lazy as _
 
 from base.backends import ConfiguredEmailBackend
 from base.context_processors import AllCompany, AllMyCompanies, company_icon_url
-from base.horilla_company_manager import HorillaCompanyManager
+from base.klockin_company_manager import HorillaCompanyManager
 from base.models import Company, ShiftRequest, WorkTypeRequest
 from employee.models import (
     DisciplinaryAction,
@@ -24,7 +24,7 @@ from employee.models import (
     EmployeeBankDetails,
     EmployeeWorkInformation,
 )
-from klockin.horilla_middlewares import _thread_locals, set_selected_company
+from klockin.klockin_middlewares import _thread_locals, set_selected_company
 from klockin.methods import get_horilla_model_class
 from klockin_documents.models import DocumentRequest
 

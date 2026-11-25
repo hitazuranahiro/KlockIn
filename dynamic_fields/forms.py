@@ -10,7 +10,7 @@ from dynamic_fields import models
 from dynamic_fields.df_not_allowed_models import DF_NOT_ALLOWED_MODELS
 from dynamic_fields.models import DynamicField
 from klockin.model_paths import model_paths
-from klockin.horilla_middlewares import _thread_locals
+from klockin.klockin_middlewares import _thread_locals
 
 
 class DynamicFieldForm(ModelForm):

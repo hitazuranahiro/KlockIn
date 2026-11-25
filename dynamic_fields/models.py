@@ -9,7 +9,7 @@ from django.utils.translation import gettext_lazy as _
 
 from dynamic_fields.df_not_allowed_models import DF_NOT_ALLOWED_MODELS
 from klockin.model_paths import model_paths
-from klockin.horilla_middlewares import _thread_locals
+from klockin.klockin_middlewares import _thread_locals
 from klockin_automations.methods.methods import get_model_class
 
 logger = logging.getLogger(__name__)

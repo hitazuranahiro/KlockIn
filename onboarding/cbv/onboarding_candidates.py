@@ -221,7 +221,7 @@ class OnboardingCandidatesNav(HorillaNavView):
     filter_body_template = "cbv/onboarding_candidates/filter.html"
     filter_form_context_name = "form"
     search_swap_target = "#listContainer"
-    # Modern slide-over filter panel (generic/horilla_nav.html's own
+    # Modern slide-over filter panel (generic/klockin_nav.html's own
     # {% if modern_filter %} branch) -- same treatment as every other
     # panel this session. recruitment.filters.CandidateFilter.ajax_fields
     # already covers Recruitment/Job Position/Rejection Reason from the
@@ -322,7 +322,7 @@ class CandidateProfileTasks(HorillaListView):
 
     def get_template_names(self):
         if self.request.headers.get("HX-Target") == self.view_id:
-            return ["generic/horilla_list_table.html"]
+            return ["generic/klockin_list_table.html"]
         return [self.template_name]
 
     def get_queryset(self, queryset=None, filtered=False, *args, **kwargs):

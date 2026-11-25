@@ -9,7 +9,7 @@ from django.forms import ValidationError
 from django.urls import reverse_lazy
 from django.utils.translation import gettext as _
 
-from base.horilla_company_manager import HorillaCompanyManager
+from base.klockin_company_manager import HorillaCompanyManager
 from employee.models import Employee
 from klockin.models import HorillaModel, upload_path
 from klockin_views.cbv_methods import render_template

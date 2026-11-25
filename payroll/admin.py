@@ -34,7 +34,7 @@ class FilingStatusAdminForm(forms.ModelForm):
     The admin used to save any formula, with neither the opt-in setting nor
     the formula check. It now applies the same rules as the payroll pages:
     turning Python mode on, or new or edited code, needs
-    HORILLA_ALLOW_PYTHON_TAX_FORMULAS, and code is always checked.
+    KLOCKIN_ALLOW_PYTHON_TAX_FORMULAS, and code is always checked.
     """
 
     class Meta:

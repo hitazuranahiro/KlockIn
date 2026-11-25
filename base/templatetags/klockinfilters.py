@@ -1,5 +1,5 @@
 """
-horillafilters.py
+klockinfilters.py
 
 This module is used to write custom template filters.
 
@@ -17,7 +17,7 @@ from django.utils.translation import gettext as _
 
 from base.models import Company, EmployeeShiftSchedule, IntegrationApps
 from employee.methods.duration_methods import strtime_seconds
-from klockin.horilla_middlewares import _thread_locals
+from klockin.klockin_middlewares import _thread_locals
 from klockin.methods import get_horilla_model_class
 from klockin_theme.models import CompanyTheme, HorillaColorTheme
 

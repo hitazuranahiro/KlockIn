@@ -18,7 +18,7 @@ from django.db.models.signals import post_delete, post_save, pre_save
 from django.dispatch import receiver
 
 from base.methods import build_safe_template_request, sanitize_mail_template_body
-from klockin.horilla_middlewares import _thread_locals
+from klockin.klockin_middlewares import _thread_locals
 from klockin.models import has_xss
 from klockin.signals import post_bulk_update, pre_bulk_update
 from notifications.signals import notify

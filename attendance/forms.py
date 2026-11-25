@@ -66,8 +66,8 @@ from base.methods import (
 from base.models import Company, EmployeeShift
 from employee.filters import EmployeeFilter
 from employee.models import Employee
-from klockin import horilla_middlewares
-from klockin_widgets.widgets.horilla_multi_select_field import HorillaMultiSelectField
+from klockin import klockin_middlewares
+from klockin_widgets.widgets.klockin_multi_select_field import HorillaMultiSelectField
 from klockin_widgets.widgets.select_widgets import HorillaMultiSelectWidget
 
 logger = logging.getLogger(__name__)
@@ -589,7 +589,7 @@ class AttendanceValidationConditionForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        active_company_id = horilla_middlewares.get_selected_company()
+        active_company_id = klockin_middlewares.get_selected_company()
         if active_company_id and not active_company_id == "all":
             self.fields["company_id"].queryset = Company.objects.filter(
                 id=active_company_id
@@ -692,7 +692,7 @@ class AttendanceRequestForm(BaseModelForm):
                 )
             kwargs["initial"] = initial
         super().__init__(*args, **kwargs)
-        request = getattr(horilla_middlewares._thread_locals, "request", None)
+        request = getattr(klockin_middlewares._thread_locals, "request", None)
         if request and not request.user.has_perm("attendance.change_attendance"):
             self.fields["minimum_hour"].widget = forms.HiddenInput()
         self.fields["attendance_clock_out_date"].required = False
@@ -1255,7 +1255,7 @@ class BulkAttendanceRequestForm(BaseModelForm):
         )
 
     def __init__(self, *args, **kwargs):
-        request = getattr(horilla_middlewares._thread_locals, "request", None)
+        request = getattr(klockin_middlewares._thread_locals, "request", None)
         employee = request.user.employee_get
         super().__init__(*args, **kwargs)
         if employee and hasattr(employee, "employee_work_info"):
@@ -1330,7 +1330,7 @@ class BulkAttendanceRequestForm(BaseModelForm):
         from_date = cleaned_data.get("from_date")
         to_date = cleaned_data.get("to_date")
         shift_id = cleaned_data.get("shift_id")
-        from klockin.horilla_middlewares import _thread_locals
+        from klockin.klockin_middlewares import _thread_locals
 
         request = _thread_locals.request
         attendance_clock_in = cleaned_data.get("attendance_clock_in")

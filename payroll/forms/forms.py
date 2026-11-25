@@ -13,7 +13,7 @@ from base.forms import Form, ModelForm
 from employee.filters import EmployeeFilter
 from employee.forms import MultipleFileField
 from employee.models import Employee
-from klockin_widgets.widgets.horilla_multi_select_field import HorillaMultiSelectField
+from klockin_widgets.widgets.klockin_multi_select_field import HorillaMultiSelectField
 from klockin_widgets.widgets.select_widgets import HorillaMultiSelectWidget
 from payroll.context_processors import get_active_employees
 from payroll.models.models import (

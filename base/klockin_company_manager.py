@@ -1,5 +1,5 @@
 """
-horilla_company_manager.py
+klockin_company_manager.py
 """
 
 import logging
@@ -11,7 +11,7 @@ from django.db.models import Q
 from django.db.models.fields.reverse_related import ForeignObjectRel
 from django.db.models.query import QuerySet
 
-from klockin.horilla_middlewares import _thread_locals, get_selected_company
+from klockin.klockin_middlewares import _thread_locals, get_selected_company
 from klockin.signals import (
     post_bulk_update,
     post_model_clean,

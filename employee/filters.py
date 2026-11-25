@@ -40,7 +40,7 @@ from klockin.filters import (
     filter_by_name,
     filter_name_or_badge_terms,
 )
-from klockin.horilla_middlewares import _thread_locals
+from klockin.klockin_middlewares import _thread_locals
 from klockin.methods import get_accessibility_cache_key
 from klockin_documents.models import Document, DocumentRequest
 from klockin_views.templatetags.generic_template_filters import getattribute

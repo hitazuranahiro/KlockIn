@@ -22,8 +22,8 @@ from django.http import HttpResponse
 from django.test import RequestFactory, TestCase
 
 from base.models import Company
-from base.templatetags.horillafilters import currency_symbol_position
-from klockin.horilla_middlewares import _thread_locals, set_selected_company
+from base.templatetags.klockinfilters import currency_symbol_position
+from klockin.klockin_middlewares import _thread_locals, set_selected_company
 from payroll.context_processors import default_currency
 from payroll.models.tax_models import PayrollSettings
 from payroll.threadings.mail import MailSendThread

@@ -7,6 +7,7 @@ from django.urls import reverse
 from django.utils.translation import gettext_noop
 
 from klockin.scheduling import register_job
+from klockin_auth.system_accounts import get_system_bot
 from notifications.signals import notify
 
 logger = logging.getLogger(__name__)
@@ -16,8 +17,6 @@ def update_rotating_work_type_assign(rotating_work_type, new_date):
     """
     Here will update the employee work information details and send notification
     """
-    from klockin_auth.models import HorillaUser
-
     employee = rotating_work_type.employee_id
     employee_work_info = employee.employee_work_info
     work_type1 = rotating_work_type.rotating_work_type_id.work_type1
@@ -45,7 +44,7 @@ def update_rotating_work_type_assign(rotating_work_type, new_date):
     rotating_work_type.current_work_type = rotating_work_type.next_work_type
     rotating_work_type.next_work_type = next_work_type
     rotating_work_type.save()
-    bot = HorillaUser.objects.filter(username="Horilla Bot").first()
+    bot = get_system_bot()
     if bot is not None:
         employee = rotating_work_type.employee_id
         notify.send(
@@ -128,8 +127,6 @@ def update_rotating_shift_assign(rotating_shift, new_date):
     """
     Here will update the employee work information and send notification
     """
-    from klockin_auth.models import HorillaUser
-
     next_shift_index = 0
     employee = rotating_shift.employee_id
     employee_work_info = employee.employee_work_info
@@ -154,7 +151,7 @@ def update_rotating_shift_assign(rotating_shift, new_date):
     rotating_shift.current_shift = rotating_shift.next_shift
     rotating_shift.next_shift = next_shift
     rotating_shift.save()
-    bot = HorillaUser.objects.filter(username="Horilla Bot").first()
+    bot = get_system_bot()
     if bot is not None:
         employee = rotating_shift.employee_id
         notify.send(
@@ -250,8 +247,6 @@ def switch_shift():
     This method change employees shift information regards to the shift request
     """
     from base.models import ShiftRequest
-    from klockin_auth.models import HorillaUser
-
     today = date.today()
 
     shift_requests = ShiftRequest.objects.filter(
@@ -266,7 +261,7 @@ def switch_shift():
             request.approved = True
             request.shift_changed = True
             request.save()
-            bot = HorillaUser.objects.filter(username="Horilla Bot").first()
+            bot = get_system_bot()
             if bot is not None:
                 employee = request.employee_id
                 notify.send(
@@ -284,8 +279,6 @@ def undo_shift():
     This method undo previous employees shift information regards to the shift request
     """
     from base.models import ShiftRequest
-    from klockin_auth.models import HorillaUser
-
     today = date.today()
     # here will get all the active shift requests
     shift_requests = ShiftRequest.objects.filter(
@@ -303,7 +296,7 @@ def undo_shift():
             # making the instance in-active
             request.is_active = False
             request.save()
-            bot = HorillaUser.objects.filter(username="Horilla Bot").first()
+            bot = get_system_bot()
             if bot is not None:
                 employee = request.employee_id
                 notify.send(
@@ -323,8 +316,6 @@ def switch_work_type():
     This method change employees work type information regards to the work type request
     """
     from base.models import WorkTypeRequest
-    from klockin_auth.models import HorillaUser
-
     today = date.today()
     work_type_requests = WorkTypeRequest.objects.filter(
         canceled=False,
@@ -340,7 +331,7 @@ def switch_work_type():
         request.approved = True
         request.work_type_changed = True
         request.save()
-        bot = HorillaUser.objects.filter(username="Horilla Bot").first()
+        bot = get_system_bot()
         if bot is not None:
             employee = request.employee_id
             notify.send(
@@ -358,8 +349,6 @@ def undo_work_type():
     This method undo previous employees work type information regards to the work type request
     """
     from base.models import WorkTypeRequest
-    from klockin_auth.models import HorillaUser
-
     today = date.today()
     # here will get all the active work type requests
     work_type_requests = WorkTypeRequest.objects.filter(
@@ -377,7 +366,7 @@ def undo_work_type():
         # making the instance is in-active
         request.is_active = False
         request.save()
-        bot = HorillaUser.objects.filter(username="Horilla Bot").first()
+        bot = get_system_bot()
         if bot is not None:
             employee = request.employee_id
             notify.send(
@@ -481,7 +470,7 @@ def clear_expired_sessions():
 
 def trim_scheduler_history():
     """
-    Delete scheduler job-run history older than HORILLA_SCHEDULER_HISTORY_DAYS.
+    Delete scheduler job-run history older than KLOCKIN_SCHEDULER_HISTORY_DAYS.
     django_apscheduler records a row for every run of every job and never
     removes them, so with jobs that run every minute the table grows by
     thousands of rows a day.
@@ -492,7 +481,7 @@ def trim_scheduler_history():
 
     # At least a day: 0 or a negative value would delete the whole history
     # at every run (the cutoff would be now or later).
-    days = max(getattr(settings, "HORILLA_SCHEDULER_HISTORY_DAYS", 7), 1)
+    days = max(getattr(settings, "KLOCKIN_SCHEDULER_HISTORY_DAYS", 7), 1)
     cutoff = timezone.now() - timedelta(days=days)
     deleted, _ = DjangoJobExecution.objects.filter(run_time__lte=cutoff).delete()
     logger.info("Deleted %s scheduler job runs older than %s days", deleted, days)

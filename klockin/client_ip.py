@@ -4,7 +4,7 @@ office-IP restriction.
 
 X-Forwarded-For is written by whoever sends the request, so it is only
 believed when the connection itself comes from a trusted reverse proxy
-(settings.HORILLA_TRUSTED_PROXIES: IPs, CIDR ranges or hostnames such as the
+(settings.KLOCKIN_TRUSTED_PROXIES: IPs, CIDR ranges or hostnames such as the
 Docker service name "nginx"). nginx's $proxy_add_x_forwarded_for appends the
 address it saw, so the chain is read from the right: each trusted proxy hands
 over to the entry before it, and the first address that is not a trusted
@@ -52,8 +52,8 @@ def _resolve(hostname):
 
 
 def is_trusted_proxy(address):
-    """Whether `address` (an ip_address) is one of HORILLA_TRUSTED_PROXIES."""
-    for entry in getattr(settings, "HORILLA_TRUSTED_PROXIES", []):
+    """Whether `address` (an ip_address) is one of KLOCKIN_TRUSTED_PROXIES."""
+    for entry in getattr(settings, "KLOCKIN_TRUSTED_PROXIES", []):
         entry = entry.strip()
         if not entry:
             continue

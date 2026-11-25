@@ -1,5 +1,5 @@
 """
-klockin/horilla_backends.py
+klockin/klockin_backends.py
 """
 
 from django.db import models

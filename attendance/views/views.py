@@ -3035,7 +3035,7 @@ def work_record_export(request):
         record_lookup[record_key] = record.work_record_type
 
     date_format = request.user.employee_get.get_date_format()
-    format_string = settings.HORILLA_DATE_FORMATS.get(date_format)
+    format_string = settings.KLOCKIN_DATE_FORMATS.get(date_format)
     formatted_dates = [day.strftime(format_string) for day in all_date_objects]
     data_rows = []
 
@@ -3494,7 +3494,7 @@ def attendance_rule_settings_view(request):
     from attendance.sidebar import attendance_rule_accessibility
     from base.auth_backends import company_scoped_active
     from base.models import BiometricAttendance
-    from klockin.horilla_middlewares import get_selected_company
+    from klockin.klockin_middlewares import get_selected_company
 
     if not attendance_rule_accessibility(request):
         raise PermissionDenied

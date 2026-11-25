@@ -27,29 +27,29 @@ class ClientIpTests(SimpleTestCase):
     def setUp(self):
         client_ip_module._resolved.clear()
 
-    @override_settings(HORILLA_TRUSTED_PROXIES=[])
+    @override_settings(KLOCKIN_TRUSTED_PROXIES=[])
     def test_with_no_trusted_proxy_the_header_is_ignored(self):
         self.assertEqual(ip("203.0.113.9", "10.20.30.7"), "203.0.113.9")
 
-    @override_settings(HORILLA_TRUSTED_PROXIES=["172.16.0.0/12"])
+    @override_settings(KLOCKIN_TRUSTED_PROXIES=["172.16.0.0/12"])
     def test_behind_the_proxy_the_appended_address_is_the_client(self):
         self.assertEqual(ip(NGINX, "192.168.1.50"), "192.168.1.50")
 
-    @override_settings(HORILLA_TRUSTED_PROXIES=["172.16.0.0/12"])
+    @override_settings(KLOCKIN_TRUSTED_PROXIES=["172.16.0.0/12"])
     def test_a_client_written_header_is_never_used(self):
         self.assertEqual(ip(NGINX, "8.8.8.8, 192.168.1.50"), "192.168.1.50")
 
-    @override_settings(HORILLA_TRUSTED_PROXIES=["172.16.0.0/12"])
+    @override_settings(KLOCKIN_TRUSTED_PROXIES=["172.16.0.0/12"])
     def test_a_direct_connection_is_not_believed(self):
         # Port 8000 published past nginx: the header comes from the client.
         self.assertEqual(ip("192.168.1.50", "8.8.8.8"), "192.168.1.50")
 
-    @override_settings(HORILLA_TRUSTED_PROXIES=["172.16.0.0/12"])
+    @override_settings(KLOCKIN_TRUSTED_PROXIES=["172.16.0.0/12"])
     def test_no_header_from_the_proxy_means_the_proxy(self):
         self.assertEqual(ip(NGINX), NGINX)
         self.assertEqual(ip(NGINX, "not-an-ip"), NGINX)
 
-    @override_settings(HORILLA_TRUSTED_PROXIES=["nginx"])
+    @override_settings(KLOCKIN_TRUSTED_PROXIES=["nginx"])
     def test_a_hostname_is_resolved(self):
         with mock.patch(
             "klockin.client_ip.socket.getaddrinfo",
@@ -58,14 +58,14 @@ class ClientIpTests(SimpleTestCase):
             self.assertEqual(ip(NGINX, "192.168.1.50"), "192.168.1.50")
             self.assertEqual(ip("172.19.0.9", "8.8.8.8"), "172.19.0.9")
 
-    @override_settings(HORILLA_TRUSTED_PROXIES=["nginx"])
+    @override_settings(KLOCKIN_TRUSTED_PROXIES=["nginx"])
     def test_an_unknown_hostname_trusts_nothing(self):
         with mock.patch(
             "klockin.client_ip.socket.getaddrinfo", side_effect=OSError("no such host")
         ):
             self.assertEqual(ip(NGINX, "8.8.8.8"), NGINX)
 
-    @override_settings(HORILLA_TRUSTED_PROXIES=["172.16.0.0/12", "10.0.0.0/8"])
+    @override_settings(KLOCKIN_TRUSTED_PROXIES=["172.16.0.0/12", "10.0.0.0/8"])
     def test_a_chain_of_trusted_proxies_is_followed(self):
         # client -> load balancer (10.0.0.4) -> nginx
         self.assertEqual(ip(NGINX, "8.8.8.8, 81.2.69.160, 10.0.0.4"), "81.2.69.160")
@@ -77,18 +77,18 @@ class Ipv4MappedAddressTests(SimpleTestCase):
     def setUp(self):
         client_ip_module._resolved.clear()
 
-    @override_settings(HORILLA_TRUSTED_PROXIES=["172.16.0.0/12"])
+    @override_settings(KLOCKIN_TRUSTED_PROXIES=["172.16.0.0/12"])
     def test_a_mapped_proxy_address_is_trusted_by_an_ipv4_range(self):
         self.assertEqual(ip("::ffff:172.19.0.3", "192.168.1.50"), "192.168.1.50")
 
-    @override_settings(HORILLA_TRUSTED_PROXIES=[])
+    @override_settings(KLOCKIN_TRUSTED_PROXIES=[])
     def test_a_mapped_client_address_reads_as_ipv4(self):
         self.assertEqual(ip("::ffff:203.0.113.9"), "203.0.113.9")
 
-    @override_settings(HORILLA_TRUSTED_PROXIES=["172.16.0.0/12"])
+    @override_settings(KLOCKIN_TRUSTED_PROXIES=["172.16.0.0/12"])
     def test_a_mapped_entry_in_the_header_reads_as_ipv4(self):
         self.assertEqual(ip("172.19.0.3", "::ffff:1.2.3.4"), "1.2.3.4")
 
-    @override_settings(HORILLA_TRUSTED_PROXIES=[])
+    @override_settings(KLOCKIN_TRUSTED_PROXIES=[])
     def test_a_real_ipv6_client_is_unchanged(self):
         self.assertEqual(ip("2001:db8::1"), "2001:db8::1")

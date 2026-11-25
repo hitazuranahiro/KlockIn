@@ -27,8 +27,8 @@ from base.methods import (
 )
 from base.models import Company
 from employee.filters import EmployeeFilter
-from klockin import horilla_middlewares
-from klockin_widgets.widgets.horilla_multi_select_field import HorillaMultiSelectField
+from klockin import klockin_middlewares
+from klockin_widgets.widgets.klockin_multi_select_field import HorillaMultiSelectField
 from klockin_widgets.widgets.select_widgets import HorillaMultiSelectWidget
 from pms.models import (
     AnonymousFeedback,
@@ -354,7 +354,7 @@ class EmployeeObjectiveCreateForm(BaseForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        request = getattr(horilla_middlewares._thread_locals, "request", None)
+        request = getattr(klockin_middlewares._thread_locals, "request", None)
 
         if request.user.has_perm("pms.add_keyresult"):
             self.fields["key_result_id"].choices = list(
@@ -444,7 +444,7 @@ class EmployeeKeyResultForm(BaseForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        request = getattr(horilla_middlewares._thread_locals, "request", None)
+        request = getattr(klockin_middlewares._thread_locals, "request", None)
         if self.initial.get("employee_objective_id"):
             if (
                 type(self.initial.get("employee_objective_id")) is int
@@ -755,7 +755,7 @@ class FeedbackForm(HorillaModelForm):
         """
         Initializes the form and queryset filtering.
         """
-        request = getattr(horilla_middlewares._thread_locals, "request", None)
+        request = getattr(klockin_middlewares._thread_locals, "request", None)
         super().__init__(*args, **kwargs)
         # if instance:
         #     kwargs["initial"] = set_date_field_initial(instance)
@@ -1147,7 +1147,7 @@ class MeetingsForm(BaseForm):
         Render the form fields as HTML table rows with Bootstrap styling.
         """
         context = {"form": self}
-        table_html = render_to_string("horilla_form.html", context)
+        table_html = render_to_string("klockin_form.html", context)
         return table_html
 
     def clean(self):
@@ -1282,7 +1282,7 @@ class EmployeeBonusPointForm(HorillaModelForm):
         exclude = ["bonus_point_id", "instance", "is_active"]
 
     def __init__(self, *args, **kwargs):
-        request = getattr(horilla_middlewares._thread_locals, "request", None)
+        request = getattr(klockin_middlewares._thread_locals, "request", None)
         super().__init__(*args, **kwargs)
         if request.GET.get("employee_id"):
             employee = Employee.objects.filter(id=request.GET["employee_id"])
@@ -1298,7 +1298,7 @@ class EmployeeBonusPointForm(HorillaModelForm):
                 {"bonus_point": _("Point should be greater than zero.")}
             )
         # Without the permission, only the employees the user manages
-        request = getattr(horilla_middlewares._thread_locals, "request", None)
+        request = getattr(klockin_middlewares._thread_locals, "request", None)
         employee = cleaned_data.get("employee_id")
         perm = (
             "pms.change_employeebonuspoint"

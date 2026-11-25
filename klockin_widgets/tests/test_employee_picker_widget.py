@@ -9,9 +9,9 @@ from django.urls import reverse
 from base.models import Department
 from employee.filters import EmployeeFilter
 from employee.models import Employee
-from klockin import horilla_middlewares
+from klockin import klockin_middlewares
 from klockin.testkit import make_company, make_employee, make_user
-from klockin_widgets.widgets.horilla_multi_select_field import HorillaMultiSelectField
+from klockin_widgets.widgets.klockin_multi_select_field import HorillaMultiSelectField
 from klockin_widgets.widgets.select_widgets import HorillaMultiSelectWidget
 
 
@@ -59,12 +59,12 @@ class EmployeePickerWidgetTests(TestCase):
         request = RequestFactory().get("/")
         request.session = {}
         request.user = self.viewer
-        horilla_middlewares._thread_locals.request = request
+        klockin_middlewares._thread_locals.request = request
         try:
             form = form_class(data=data)
             return str(form[field])
         finally:
-            horilla_middlewares._thread_locals.request = None
+            klockin_middlewares._thread_locals.request = None
 
     def test_renders_endpoints_and_token_but_no_rows(self):
         html = self.render()

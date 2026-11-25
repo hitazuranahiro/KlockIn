@@ -190,7 +190,7 @@ class DeploymentWiringTests(SimpleTestCase):
         for name, compose in (("dev", dev), ("prod", prod)):
             with self.subTest(compose=name):
                 self.assertEqual(
-                    str(self._scheduler_env(compose)["HORILLA_SKIP_RELEASE_TASKS"]),
+                    str(self._scheduler_env(compose)["KLOCKIN_SKIP_RELEASE_TASKS"]),
                     "1",
                 )
 

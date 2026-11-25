@@ -524,7 +524,7 @@ def horilla_version(request):
 
 def first_day_of_week(request):
     """
-    Exposes settings.HORILLA_FIRST_DAY_OF_WEEK (0 = Sunday ... 6 = Saturday,
+    Exposes settings.KLOCKIN_FIRST_DAY_OF_WEEK (0 = Sunday ... 6 = Saturday,
     Monday when unset or invalid) so the dashboards' "This Week" presets
     start the week on the same day as the server-side filters.
     """

@@ -39,7 +39,7 @@ from base.methods import (
 # from klockin.http import HorillaRedirect
 from klockin.filters import FilterSet
 from klockin.group_by import group_by_queryset
-from klockin.horilla_middlewares import _thread_locals, get_selected_company
+from klockin.klockin_middlewares import _thread_locals, get_selected_company
 from klockin.http.response import HorillaRedirect
 from klockin.models import HorillaModel
 from klockin.nested_group_by import nested_group_by_queryset
@@ -126,7 +126,7 @@ class HorillaListView(ListView):
     filter_class: FilterSet = None
 
     view_id: str = """"""
-    template_name: str = "generic/horilla_list_table.html"
+    template_name: str = "generic/klockin_list_table.html"
     context_object_name = "queryset"
     verbose_name: str = ""
 
@@ -584,7 +584,7 @@ class HorillaListView(ListView):
                     )
                 )
             except Exception:
-                self.template_name = "generic/horilla_list_table.html"
+                self.template_name = "generic/klockin_list_table.html"
                 context["queryset"] = paginator_qry(
                     queryset, self._saved_filters.get("page"), self.records_per_page
                 )
@@ -605,7 +605,7 @@ class HorillaListView(ListView):
                     records_per_page=10,
                 )
             except Exception:
-                self.template_name = "generic/horilla_list_table.html"
+                self.template_name = "generic/klockin_list_table.html"
                 context["queryset"] = paginator_qry(
                     queryset, self._saved_filters.get("page"), self.records_per_page
                 )
@@ -1496,7 +1496,7 @@ class HorillaSectionView(TemplateView):
     script_static_paths: list = []
     style_static_paths: list = []
 
-    template_name = "generic/horilla_section.html"
+    template_name = "generic/klockin_section.html"
 
     def get_context_data(self, **kwargs) -> dict:
         context = super().get_context_data(**kwargs)
@@ -1528,7 +1528,7 @@ class HorillaDetailedView(DetailView):
     """
 
     title = _("Detailed View")
-    template_name = "generic/horilla_detailed_view.html"
+    template_name = "generic/klockin_detailed_view.html"
     header: dict = {
         "title": _("KlockIN"),
         "subtitle": _("Detailed View"),
@@ -1662,7 +1662,7 @@ class HorillaTabView(TemplateView):
     """
 
     view_id: str = ""
-    template_name = "generic/horilla_tabs.html"
+    template_name = "generic/klockin_tabs.html"
     show_filter_tags = False
     # Tabs pass the page they were opened from on as "referrer", which lets a
     # saved filter (and a default one) made in one tab show up in its sibling
@@ -1705,7 +1705,7 @@ class HorillaTabView(TemplateView):
                 context["active_target"] = active_tab.tab_target
 
         # ?open_tab=<1-based index> forces a tab open on first load, overriding the last-active tab.
-        # No tag name in the selector: the tab is a <li> in horilla_tabs.html but a <button> in the theme override.
+        # No tag name in the selector: the tab is a <li> in klockin_tabs.html but a <button> in the theme override.
         open_tab = self.request.GET.get("open_tab")
         if open_tab and open_tab.isdigit():
             context["active_target"] = f'[data-target="#{self.view_id}{open_tab}"]'
@@ -1746,7 +1746,7 @@ class HorillaTabContentShell(TemplateView):
     Per-tab shell: each tab gets its own Nav plus list container.
     """
 
-    template_name = "generic/horilla_tab_content_shell.html"
+    template_name = "generic/klockin_tab_content_shell.html"
     nav_url_name = ""
     container_id = ""
     tabs_root_id = ""
@@ -1771,7 +1771,7 @@ class HorillaCardView(ListView):
 
     view_id: str = None
 
-    template_name = "generic/horilla_card.html"
+    template_name = "generic/klockin_card.html"
     context_object_name = "queryset"
 
     search_url: str = ""
@@ -2068,7 +2068,7 @@ class HorillaFormView(FormView):
     view_id: str = get_short_uuid(4)
     hx_confirm: str = ""
     form_class: forms.ModelForm = None
-    template_name = "generic/horilla_form.html"
+    template_name = "generic/klockin_form.html"
     ids_key: str = "instance_ids"
     form_disaply_attr: str = ""
     new_display_title: str = "Add New"
@@ -2364,7 +2364,7 @@ class HorillaNavView(TemplateView):
     filter form submit button id: applyFilter
     """
 
-    template_name = "generic/horilla_nav.html"
+    template_name = "generic/klockin_nav.html"
 
     nav_title: str = ""
     search_url: str = ""
@@ -2394,7 +2394,7 @@ class HorillaNavView(TemplateView):
     default_group_by: str = ""
     # Optional multi-level default for the nested "Grouped by" bar; falls back to [default_group_by].
     default_nested_group_by: list = []
-    # Opt-in redesign of the Filter dropdown's accordion sections (see horilla_nav.html's .oh-filter-modern styles).
+    # Opt-in redesign of the Filter dropdown's accordion sections (see klockin_nav.html's .oh-filter-modern styles).
     modern_filter: bool = False
 
     def __init__(self, **kwargs: Any) -> None:
@@ -2640,7 +2640,7 @@ class HorillaProfileView(DetailView):
     GenericHorillaProfileView
     """
 
-    template_name = "generic/horilla_profile_view.html"
+    template_name = "generic/klockin_profile_view.html"
     view_id: str = None
     filter_class: FilterSet = None
     push_url: str = None

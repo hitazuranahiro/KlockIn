@@ -467,7 +467,7 @@ body.dark .oh-profile-settings__link:hover {
 }
 
 /* Gear settings dropdown in the newer Tailwind-based profile card
-   (klockin_theme/templates/generic/horilla_profile_view.html). */
+   (klockin_theme/templates/generic/klockin_profile_view.html). */
 body.dark .oh-dropdown .border-secondary-100 {
   border-color: #333333 !important;
 }

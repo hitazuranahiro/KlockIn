@@ -40,7 +40,7 @@ class HorillaAutomationConfig(AppConfig):
             return ready
         try:
 
-            from base.templatetags.horillafilters import app_installed
+            from base.templatetags.klockinfilters import app_installed
             from employee.models import Employee
             from klockin_automations.methods.methods import get_related_models
             from klockin_automations.models import MODEL_CHOICES

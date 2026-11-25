@@ -176,7 +176,7 @@ class AttendanceActivityNavView(HorillaNavView):
     filter_instance = AttendanceActivityFilter()
     filter_form_context_name = "form"
     search_swap_target = "#listContainer"
-    # Modern slide-over filter panel (horilla_nav.html's .oh-filter-modern
+    # Modern slide-over filter panel (klockin_nav.html's .oh-filter-modern
     # styles) -- AttendanceActivityFilter.ajax_fields carries the
     # AJAX-loaded comboboxes this needs, same as AttendancesNavView.
     modern_filter = True

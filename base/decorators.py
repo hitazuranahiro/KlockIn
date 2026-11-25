@@ -6,7 +6,7 @@ from django.contrib import messages
 from django.utils.translation import gettext as _
 
 from employee.models import EmployeeWorkInformation
-from klockin.horilla_middlewares import _thread_locals
+from klockin.klockin_middlewares import _thread_locals
 from klockin.http.response import HorillaRedirect
 from klockin.methods import handle_no_permission
 

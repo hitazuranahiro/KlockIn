@@ -12,7 +12,7 @@ from django.db import models
 from django.test import SimpleTestCase
 
 from base.checks import check_company_scoped_managers
-from base.horilla_company_manager import HorillaCompanyManager
+from base.klockin_company_manager import HorillaCompanyManager
 
 
 class TenancyCheckTests(SimpleTestCase):

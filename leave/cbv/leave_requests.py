@@ -28,7 +28,7 @@ from base.methods import (
     is_reportingmanager,
 )
 from base.models import PenaltyAccounts
-from klockin.horilla_middlewares import _thread_locals
+from klockin.klockin_middlewares import _thread_locals
 from klockin.methods import get_horilla_model_class
 from klockin_views.cbv_methods import (
     EmployeeScopeMixin,
@@ -376,7 +376,7 @@ class LeaveRequestsNavView(HorillaNavView):
     filter_body_template = "cbv/leave_requests/filter.html"
     filter_form_context_name = "form"
     search_swap_target = "#listContainer"
-    # Modern slide-over filter panel (horilla_nav.html's .oh-filter-modern
+    # Modern slide-over filter panel (klockin_nav.html's .oh-filter-modern
     # styles) -- same treatment as every other panel this session.
     # LeaveRequestFilter.ajax_fields carries the AJAX-loaded comboboxes
     # this needs.

@@ -29,6 +29,6 @@ The deployment uses persistent named volumes for the database, Redis, ordinary m
 3. Open `https://<public-host>/health/` and verify `product` is `klockin`. Open `/ready/` and verify the database, cache, and scheduler each report `ok`. Check that the scheduler container is running because its readiness field reflects registered jobs.
 4. On the sign-in page, choose **Initialize Database** and use the configured setup password to create the first administrator. Store the password privately. Then verify sign-in and open Timekeeping.
 
-The default trusted proxy hostname is `dokploy-traefik`. Verify the web service can resolve the actual ingress proxy on its Dokploy network if IP-based login lockouts or office-IP rules are required. Override `HORILLA_TRUSTED_PROXIES` with the actual proxy hostname or address for a custom Dokploy installation.
+The default trusted proxy hostname is `dokploy-traefik`. Verify the web service can resolve the actual ingress proxy on its Dokploy network if IP-based login lockouts or office-IP rules are required. Override `KLOCKIN_TRUSTED_PROXIES` with the actual proxy hostname or address for a custom Dokploy installation.
 
 [Dokploy Compose](https://docs.dokploy.com/docs/core/docker-compose) · [Compose domains](https://docs.dokploy.com/docs/core/docker-compose/domains)

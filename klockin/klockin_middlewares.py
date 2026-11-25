@@ -1,5 +1,5 @@
 """
-horilla_middlewares.py
+klockin_middlewares.py
 
 This module is used to register horilla's middlewares without affecting the klockin/settings.py
 """

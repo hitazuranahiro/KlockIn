@@ -24,7 +24,7 @@ class _FrozenDate(date):
 
 
 # Monday unless a test says otherwise, whatever a local .env sets.
-@override_settings(HORILLA_FIRST_DAY_OF_WEEK=1)
+@override_settings(KLOCKIN_FIRST_DAY_OF_WEEK=1)
 class ResolveRelativeDateRangeTests(SimpleTestCase):
     def setUp(self):
         # The helper reads ``datetime.date.today()``. Pin it so the result does
@@ -52,7 +52,7 @@ class ResolveRelativeDateRangeTests(SimpleTestCase):
             with self.subTest(operator=operator):
                 self.assertEqual(resolve_relative_date_range(operator), window)
 
-    @override_settings(HORILLA_FIRST_DAY_OF_WEEK=6)
+    @override_settings(KLOCKIN_FIRST_DAY_OF_WEEK=6)
     def test_weeks_follow_the_configured_first_day(self):
         # FIXED_TODAY is a Wednesday; with Saturday first the week began on
         # Saturday the 7th.

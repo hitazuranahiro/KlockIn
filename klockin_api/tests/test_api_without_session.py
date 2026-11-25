@@ -11,7 +11,7 @@ from django.contrib.sessions.models import Session
 from django.test import RequestFactory, TestCase
 from rest_framework.test import APIClient
 
-from klockin.horilla_middlewares import _thread_locals, set_selected_company
+from klockin.klockin_middlewares import _thread_locals, set_selected_company
 from klockin.testkit import make_company, make_employee, make_user
 from klockin_api.api_decorators.employee.decorators import enter_if_accessible
 

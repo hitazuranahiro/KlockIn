@@ -4945,7 +4945,7 @@ def _as_request():
     """
     from django.contrib.auth import get_user_model
 
-    from klockin.horilla_middlewares import _thread_locals
+    from klockin.klockin_middlewares import _thread_locals
 
     User = get_user_model()
     user = User.objects.filter(is_superuser=True).first()

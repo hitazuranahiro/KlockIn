@@ -11,6 +11,8 @@ from django.utils import timezone
 from django.utils.html import strip_tags
 from django.utils.translation import gettext as _
 
+from klockin_auth.system_accounts import is_system_bot
+
 
 def history_action_phrase(changes, fallback=None):
     """Short activity-feed phrase from changed fields (e.g. 'updated department')."""
@@ -57,7 +59,7 @@ def history_date_label(history_date, today=None):
 
 
 def _actor_name(updated_by):
-    if updated_by is None:
+    if updated_by is None or is_system_bot(updated_by):
         return _("KlockIN Bot")
     if hasattr(updated_by, "get_full_name"):
         return updated_by.get_full_name() or str(updated_by)
@@ -65,7 +67,7 @@ def _actor_name(updated_by):
 
 
 def _actor_avatar(updated_by):
-    if updated_by is None:
+    if updated_by is None or is_system_bot(updated_by):
         return static("klockin/mark.png")
     getter = getattr(updated_by, "get_avatar", None)
     if callable(getter):
@@ -206,7 +208,7 @@ def normalize_log_entries(log_entries):
     for entry in log_entries or []:
         employee = None
         actor = getattr(entry, "actor", None)
-        if actor is not None and getattr(actor, "username", None) != "Horilla Bot":
+        if actor is not None and not is_system_bot(actor):
             employee = getattr(actor, "employee_get", None)
         updated_by = _AuditActor(employee=employee)
 

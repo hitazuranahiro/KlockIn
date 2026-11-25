@@ -75,7 +75,7 @@ class WorkAndShiftTabView(HorillaTabView):
         context["employee"] = employee
         # Each sub-tab's own badge count is only otherwise filled in once
         # that tab's content has actually loaded (client-side, from its
-        # list view's data-total-count) - horilla_tabs.html only ever
+        # list view's data-total-count) - klockin_tabs.html only ever
         # auto-loads the ACTIVE sub-tab on first render, so every other
         # sub-tab's badge was stuck at its server-rendered default (0)
         # until the user clicked it, even when it had real records.

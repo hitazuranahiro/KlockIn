@@ -32,7 +32,7 @@ For production Compose, use a one-off web container in the same Compose project 
 
 ```sh
 docker compose -f docker-compose.yml -f docker-compose.prod.yml run --rm --no-deps \
-  -e HORILLA_SKIP_RELEASE_TASKS=1 web python manage.py migrate_uploaded_media --apply
+  -e KLOCKIN_SKIP_RELEASE_TASKS=1 web python manage.py migrate_uploaded_media --apply
 ```
 
 If attendance photos are still local, run their [separate encrypted import](klockin-private-evidence.md#move-existing-photos). If photos already use R2, keep the existing bucket and credentials when enabling the combined setting. After the copies are verified, set `KLOCKIN_UPLOAD_STORAGE=s3` and recreate the web and scheduler services together.

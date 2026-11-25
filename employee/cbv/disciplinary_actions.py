@@ -123,7 +123,7 @@ class DisciplinaryActionsNav(HorillaNavView):
     search_swap_target = "#listContainer"
     template_name = "generic/inline_nav.html"
     # Modern slide-over filter panel (generic/inline_nav.html's own
-    # {% if modern_filter %} branch, mirroring horilla_nav.html's
+    # {% if modern_filter %} branch, mirroring klockin_nav.html's
     # .oh-filter-modern styles) -- same treatment as every other panel
     # this session. DisciplinaryActionFilter.ajax_fields carries the
     # AJAX-loaded comboboxes this needs.

@@ -18,7 +18,7 @@ from recruitment.views.views import (
 PASSWORD = "Right-Pass-123"
 
 
-@override_settings(HORILLA_TRUSTED_PROXIES=[])
+@override_settings(KLOCKIN_TRUSTED_PROXIES=[])
 class CandidateLoginThrottleTests(TestCase):
     def setUp(self):
         cache.clear()

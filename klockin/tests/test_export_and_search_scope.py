@@ -12,7 +12,7 @@ from django.urls import reverse
 
 from employee.models import Employee, EmployeeBankDetails
 from klockin.filters import HorillaFilterSet
-from klockin.horilla_middlewares import _thread_locals
+from klockin.klockin_middlewares import _thread_locals
 from klockin.testkit import make_company, make_employee, make_user
 from klockin_views.views import _export_part_allowed
 

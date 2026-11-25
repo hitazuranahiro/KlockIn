@@ -25,11 +25,11 @@ from base.models import CompanyLeaves, Holidays, JobPosition
 from employee.filters import EmployeeFilter
 from employee.forms import MultipleFileField
 from employee.models import Employee
-from klockin import horilla_middlewares
-from klockin.horilla_middlewares import _thread_locals
+from klockin import klockin_middlewares
+from klockin.klockin_middlewares import _thread_locals
 from klockin_views.generic.cbv.views import HorillaFormView
 from klockin_widgets.forms import HorillaForm, HorillaModelForm
-from klockin_widgets.widgets.horilla_multi_select_field import HorillaMultiSelectField
+from klockin_widgets.widgets.klockin_multi_select_field import HorillaMultiSelectField
 from klockin_widgets.widgets.select_widgets import HorillaMultiSelectWidget
 from leave.methods import get_leave_day_attendance
 from leave.models import (
@@ -108,7 +108,7 @@ class LeaveTypeConditionForm(forms.ModelForm):
 class ConditionForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        request = getattr(horilla_middlewares._thread_locals, "request", None)
+        request = getattr(klockin_middlewares._thread_locals, "request", None)
         reload_queryset(self.fields)
         for field_name, field in self.fields.items():
             widget = field.widget
@@ -421,7 +421,7 @@ class LeaveRequestCreationForm(BaseModelForm):
         Render the form fields as HTML table rows with Bootstrap styling.
         """
         context = {"form": self}
-        table_html = render_to_string("horilla_form.html", context)
+        table_html = render_to_string("klockin_form.html", context)
         return table_html
 
     class Meta:
@@ -506,7 +506,7 @@ class LeaveRequestUpdationForm(BaseModelForm):
         Render the form fields as HTML table rows with Bootstrap styling.
         """
         context = {"form": self}
-        table_html = render_to_string("horilla_form.html", context)
+        table_html = render_to_string("klockin_form.html", context)
         return table_html
 
     class Meta:
@@ -675,7 +675,7 @@ class UserLeaveRequestForm(BaseModelForm):
         Render the form fields as HTML table rows with Bootstrap styling.
         """
         context = {"form": self}
-        table_html = render_to_string("horilla_form.html", context)
+        table_html = render_to_string("klockin_form.html", context)
         return table_html
 
     class Meta:
@@ -779,7 +779,7 @@ class UserLeaveRequestCreationForm(BaseModelForm):
         Render the form fields as HTML table rows with Bootstrap styling.
         """
         context = {"form": self}
-        table_html = render_to_string("horilla_form.html", context)
+        table_html = render_to_string("klockin_form.html", context)
         return table_html
 
     def __init__(self, *args, **kwargs):
@@ -872,7 +872,7 @@ class LeaveAllocationRequestForm(BaseModelForm):
         Render the form fields as HTML table rows with Bootstrap styling.
         """
         context = {"form": self}
-        table_html = render_to_string("horilla_form.html", context)
+        table_html = render_to_string("klockin_form.html", context)
         return table_html
 
     class Meta:
@@ -1350,7 +1350,7 @@ if apps.is_installed("attendance"):
         def __init__(self, *args, **kwargs):
             super(CompensatoryLeaveForm, self).__init__(*args, **kwargs)
 
-            request = getattr(horilla_middlewares._thread_locals, "request", None)
+            request = getattr(klockin_middlewares._thread_locals, "request", None)
             instance_id = None
             if self.instance:
                 instance_id = self.instance.id
@@ -1395,7 +1395,7 @@ if apps.is_installed("attendance"):
             Render the form fields as HTML table rows with Bootstrap styling.
             """
             context = {"form": self}
-            table_html = render_to_string("horilla_form.html", context)
+            table_html = render_to_string("klockin_form.html", context)
             return table_html
 
         def clean(self):

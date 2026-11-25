@@ -16,7 +16,7 @@ from django.urls import reverse_lazy
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
-from base.horilla_company_manager import HorillaCompanyManager
+from base.klockin_company_manager import HorillaCompanyManager
 from base.models import Company
 from klockin.models import HorillaModel
 from klockin_auth.models import HorillaUser

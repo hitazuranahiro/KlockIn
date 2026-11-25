@@ -39,7 +39,7 @@ from asset.models import (
 )
 from base.methods import filtersubordinates
 from employee.models import Employee
-from klockin.horilla_middlewares import _thread_locals
+from klockin.klockin_middlewares import _thread_locals
 from klockin.http.response import HorillaRedirect
 from klockin.methods import horilla_users_with_perms
 from klockin_views.cbv_methods import (
@@ -604,7 +604,7 @@ class AssetNav(HorillaNavView):
     filter_instance = CustomAssetFilter()
     filter_form_context_name = "form"
     filter_body_template = "cbv/request_and_allocation/asset_filter.html"
-    # Modern slide-over filter panel (generic/horilla_nav.html's {% if modern_filter %} branch).
+    # Modern slide-over filter panel (generic/klockin_nav.html's {% if modern_filter %} branch).
     modern_filter = True
 
     group_by_fields = [

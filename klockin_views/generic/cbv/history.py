@@ -9,7 +9,7 @@ from django.utils.translation import gettext as _
 from django.views.generic import DetailView
 from simple_history.utils import get_history_model_for_model
 
-from klockin.horilla_middlewares import _thread_locals
+from klockin.klockin_middlewares import _thread_locals
 from klockin.http.response import HorillaRedirect
 from klockin_views.cbv_methods import hx_request_required, login_required
 from klockin_views.generic.cbv.views import HorillaFormView
@@ -23,7 +23,7 @@ class HorillaHistoryView(DetailView):
     GenericHorillaHistoryView
     """
 
-    template_name = "generic/horilla_history_view.html"
+    template_name = "generic/klockin_history_view.html"
     has_perm_to_revert = False
     fields: list = []
     history_related_name = "history"

@@ -175,7 +175,7 @@ class GoogleCredentialsFormView(HorillaFormView):
     form_class = GoogleCloudCredentialForm
     model = GoogleCloudCredential
     new_display_title = _("Create Google Cloud Credentials")
-    template_name = "generic/horilla_form.html"
+    template_name = "generic/klockin_form.html"
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()

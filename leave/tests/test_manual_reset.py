@@ -292,7 +292,7 @@ class ManualResetViewTests(ManualResetTestBase):
 class CompanyScopeTests(ManualResetTestBase):
     def setUp(self):
         super().setUp()
-        from klockin.horilla_middlewares import current_company_id
+        from klockin.klockin_middlewares import current_company_id
         from klockin.testkit import make_company, make_employee
 
         self.current_company_id = current_company_id

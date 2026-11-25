@@ -31,7 +31,7 @@ def _reset_axes():
 
 
 @override_settings(
-    AXES_FAILURE_LIMIT=AXES_LIMIT, HORILLA_TRUSTED_PROXIES=["172.16.0.0/12"]
+    AXES_FAILURE_LIMIT=AXES_LIMIT, KLOCKIN_TRUSTED_PROXIES=["172.16.0.0/12"]
 )
 class LoginClientIpTests(TestCase):
     def setUp(self):
@@ -89,7 +89,7 @@ class LoginClientIpTests(TestCase):
         self._attempt("correct-horse", "192.168.1.50")
         self.assertIn("_auth_user_id", self.client.session)
 
-    @override_settings(HORILLA_TRUSTED_PROXIES=[])
+    @override_settings(KLOCKIN_TRUSTED_PROXIES=[])
     def test_with_no_trusted_proxy_remote_addr_is_used(self):
         self._attempt("wrong-password", "192.168.1.50", remote="203.0.113.9")
         self.assertEqual(

@@ -49,7 +49,7 @@ from openpyxl.utils import get_column_letter
 
 from klockin.config import logger
 from klockin.export_safety import safe_cell
-from klockin.horilla_middlewares import _thread_locals
+from klockin.klockin_middlewares import _thread_locals
 from klockin.methods import handle_no_permission
 from klockin.week import first_day_of_week, week_start  # noqa: F401 (re-exported)
 from klockin_views.templatetags.generic_template_filters import getattribute

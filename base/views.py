@@ -584,7 +584,7 @@ def initialize_database(request):
                     _("The password you entered is incorrect. Please try again."),
                 )
                 return HorillaRedirect(request)
-        return render(request, "initialize_database/horilla_user.html")
+        return render(request, "initialize_database/klockin_user.html")
     else:
         return redirect("login")
 
@@ -607,7 +607,7 @@ def initialize_database_user(request):
         password = form_data.get("password")
         confirm_password = form_data.get("confirm_password")
         if password != confirm_password:
-            return render(request, "initialize_database/horilla_user_signup.html")
+            return render(request, "initialize_database/klockin_user_signup.html")
         first_name = form_data.get("firstname")
         last_name = form_data.get("lastname")
         badge_id = form_data.get("badge_id")
@@ -632,10 +632,10 @@ def initialize_database_user(request):
         login(request, user)
         return render(
             request,
-            "initialize_database/horilla_company.html",
+            "initialize_database/klockin_company.html",
             {"form": CompanyForm(initial={"hq": True})},
         )
-    return render(request, "initialize_database/horilla_user_signup.html")
+    return render(request, "initialize_database/klockin_user_signup.html")
 
 
 @superuser_required
@@ -665,10 +665,10 @@ def initialize_database_company(request):
                 )
             return render(
                 request,
-                "initialize_database/horilla_department.html",
+                "initialize_database/klockin_department.html",
                 {"form": DepartmentForm(initial={"company_id": company})},
             )
-    return render(request, "initialize_database/horilla_company.html", {"form": form})
+    return render(request, "initialize_database/klockin_company.html", {"form": form})
 
 
 @superuser_required
@@ -693,7 +693,7 @@ def initialize_database_department(request):
             form = DepartmentForm(initial={"company_id": company})
     return render(
         request,
-        "initialize_database/horilla_department_form.html",
+        "initialize_database/klockin_department_form.html",
         {"form": form, "departments": departments},
     )
 
@@ -720,7 +720,7 @@ def initialize_department_edit(request, obj_id):
             form.save()
             return render(
                 request,
-                "initialize_database/horilla_department_form.html",
+                "initialize_database/klockin_department_form.html",
                 {
                     "form": DepartmentForm(initial={"company_id": company}),
                     "departments": Department.objects.all(),
@@ -728,7 +728,7 @@ def initialize_department_edit(request, obj_id):
             )
     return render(
         request,
-        "initialize_database/horilla_department_form.html",
+        "initialize_database/klockin_department_form.html",
         {
             "form": form,
             "department": department,
@@ -776,7 +776,7 @@ def initialize_database_job_position(request):
             form = JobPositionMultiForm(initial={"company_id": Company.objects.first()})
         return render(
             request,
-            "initialize_database/horilla_job_position_form.html",
+            "initialize_database/klockin_job_position_form.html",
             {
                 "form": form,
                 "job_positions": JobPosition.objects.all(),
@@ -785,7 +785,7 @@ def initialize_database_job_position(request):
         )
     return render(
         request,
-        "initialize_database/horilla_job_position.html",
+        "initialize_database/klockin_job_position.html",
         {"form": form, "job_positions": JobPosition.objects.all(), "company": company},
     )
 
@@ -812,7 +812,7 @@ def initialize_job_position_edit(request, obj_id):
             form.save(commit=True)
             return render(
                 request,
-                "initialize_database/horilla_job_position_form.html",
+                "initialize_database/klockin_job_position_form.html",
                 {
                     "form": JobPositionMultiForm(initial={"company_id": company}),
                     "job_positions": JobPosition.objects.all(),
@@ -821,7 +821,7 @@ def initialize_job_position_edit(request, obj_id):
             )
     return render(
         request,
-        "initialize_database/horilla_job_position_form.html",
+        "initialize_database/klockin_job_position_form.html",
         {
             "form": form,
             "job_position": job_position,
@@ -849,7 +849,7 @@ def initialize_job_position_delete(request, obj_id):
     job_position.delete() if job_position else None
     return render(
         request,
-        "initialize_database/horilla_job_position_form.html",
+        "initialize_database/klockin_job_position_form.html",
         {
             "form": JobPositionMultiForm(
                 initial={"company_id": Company.objects.first()}
@@ -6267,7 +6267,7 @@ def save_date_format(request):
         # Taking the selected Date Format
         selected_format = request.POST.get("selected_format")
 
-        if selected_format not in settings.HORILLA_DATE_FORMATS:
+        if selected_format not in settings.KLOCKIN_DATE_FORMATS:
             messages.error(request, _("Invalid date format."))
             return JsonResponse(
                 {"success": False, "error": "Invalid date format."}, status=400
@@ -6365,7 +6365,7 @@ def save_time_format(request):
         # Taking the selected Time Format
         selected_format = request.POST.get("selected_format")
 
-        if selected_format not in settings.HORILLA_TIME_FORMATS:
+        if selected_format not in settings.KLOCKIN_TIME_FORMATS:
             messages.error(request, _("Invalid time format."))
             return JsonResponse(
                 {"success": False, "error": "Invalid time format."}, status=400

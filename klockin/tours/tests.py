@@ -14,7 +14,7 @@ from django.urls import reverse
 
 from base.models import Company
 from employee.models import Employee
-from klockin.horilla_middlewares import set_selected_company
+from klockin.klockin_middlewares import set_selected_company
 from klockin.testkit import make_employee
 from klockin_auth.models import HorillaUser
 from .models import Tour, TourProgress, TourStep
@@ -234,7 +234,7 @@ class TourCompanyIsolationTests(TestCase):
     def setUp(self):
         # Clear any thread-local request left over from prior tests so
         # HorillaModel.save() doesn't stamp modified_by with a stale user id.
-        from klockin.horilla_middlewares import _thread_locals
+        from klockin.klockin_middlewares import _thread_locals
 
         _thread_locals.request = None
 

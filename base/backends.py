@@ -14,7 +14,7 @@ from django.core.mail.backends.smtp import EmailBackend
 from base.email_redaction import get_current_company, redact_credential_body
 from base.models import DynamicEmailConfiguration, EmailLog
 from klockin import settings
-from klockin.horilla_middlewares import _thread_locals
+from klockin.klockin_middlewares import _thread_locals
 
 logger = logging.getLogger(__name__)
 

@@ -582,7 +582,7 @@ class AsyncExportScopingTests(TestCase):
         from types import SimpleNamespace
         from unittest.mock import patch
 
-        from klockin.horilla_middlewares import get_selected_company
+        from klockin.klockin_middlewares import get_selected_company
         from report import async_export
 
         company = make_company("Async Scope Co")

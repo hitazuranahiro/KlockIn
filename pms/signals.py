@@ -12,7 +12,7 @@ from django.db.models.signals import m2m_changed, post_delete, post_save, pre_sa
 from django.dispatch import receiver
 
 from employee.methods.methods import check_relationship_with_employee_model
-from klockin.horilla_middlewares import _thread_locals
+from klockin.klockin_middlewares import _thread_locals
 from klockin.signals import pre_bulk_update
 from pms.models import BonusPointSetting
 

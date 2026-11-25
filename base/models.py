@@ -16,9 +16,9 @@ from django.utils import timezone
 from django.utils.html import format_html
 from django.utils.translation import gettext_lazy as _
 
-from base.horilla_company_manager import HorillaCompanyManager
-from klockin import horilla_middlewares
-from klockin.horilla_middlewares import _thread_locals
+from base.klockin_company_manager import HorillaCompanyManager
+from klockin import klockin_middlewares
+from klockin.klockin_middlewares import _thread_locals
 from klockin.methods import get_horilla_model_class
 from klockin.models import HorillaModel, NoPermissionModel, upload_path
 from klockin_audit.models import HorillaAuditInfo, HorillaAuditLog
@@ -1681,7 +1681,7 @@ class WorkTypeRequest(HorillaModel):
         return False
 
     def clean(self):
-        request = getattr(horilla_middlewares._thread_locals, "request", None)
+        request = getattr(klockin_middlewares._thread_locals, "request", None)
         if not request.user.is_superuser:
             if self.requested_date < timezone.now().date():
                 raise ValidationError(_("Date must be greater than or equal to today"))
@@ -1949,7 +1949,7 @@ class ShiftRequest(HorillaModel):
 
     def clean(self):
 
-        request = getattr(horilla_middlewares._thread_locals, "request", None)
+        request = getattr(klockin_middlewares._thread_locals, "request", None)
         if not request.user.is_superuser:
             if not self.pk and self.requested_date < timezone.now().date():
                 raise ValidationError(_("Date must be greater than or equal to today"))

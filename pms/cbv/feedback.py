@@ -18,7 +18,7 @@ from base.methods import is_reportingmanager
 from employee.cbv.employee_profile import EmployeeProfileView
 from employee.models import Employee
 from klockin.http.response import HorillaRedirect
-from klockin_auth.models import HorillaUser
+from klockin_auth.system_accounts import get_system_bot
 from klockin_views.cbv_methods import login_required
 from klockin_views.generic.cbv.views import (
     HorillaDetailedView,
@@ -503,7 +503,7 @@ class _FeedbackTabNavBase(HorillaNavView):
     filter_body_template = "cbv/360_feedback/feedback_filter.html"
     filter_instance = FeedbackFilter()
     filter_form_context_name = "feedback_filter_form"
-    # Modern slide-over filter panel (generic/horilla_nav.html's own
+    # Modern slide-over filter panel (generic/klockin_nav.html's own
     # {% if modern_filter %} branch) -- same treatment as every other
     # panel this session. FeedbackFilter.ajax_fields carries the
     # AJAX-loaded comboboxes this needs.
@@ -644,7 +644,7 @@ class AddAnonymousFeedbackForm(HorillaFormView):
                 message = _("Feedback Created Successfully")
                 if feedback.based_on == "employee":
                     notify.send(
-                        HorillaUser.objects.filter(username="Horilla Bot").first(),
+                        get_system_bot(),
                         recipient=feedback.employee_id.employee_user_id,
                         verb=gettext_noop("You received anonymous feedback!"),
                         redirect=reverse("feedback-view"),

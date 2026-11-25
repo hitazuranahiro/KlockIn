@@ -4,7 +4,7 @@ from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import models
 
-from base.horilla_company_manager import HorillaCompanyManager
+from base.klockin_company_manager import HorillaCompanyManager
 
 from .policies import ATTENDANCE_MODES, PAIRED
 from .evidence_crypto import EncryptedEvidenceDecimalField, EncryptedEvidenceTextField

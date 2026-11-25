@@ -11,6 +11,7 @@ from django.templatetags.static import static
 from django.utils.translation import gettext as _
 
 from klockin.decorators import apply_decorators
+from klockin_auth.system_accounts import is_system_bot
 
 
 class Bot:
@@ -133,7 +134,7 @@ class _SyntheticHistorySnapshot:
 
 
 def _actor_from_user(user, cache=None):
-    if not user or getattr(user, "username", None) == "Horilla Bot":
+    if not user or is_system_bot(user):
         return Bot()
     if cache is not None and user.pk in cache:
         return cache[user.pk]

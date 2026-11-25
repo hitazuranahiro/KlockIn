@@ -8,10 +8,10 @@ from typing import Any, Dict
 
 from django import forms
 
-from klockin_widgets.widgets.horilla_multi_select_field import HorillaMultiSelectField
+from klockin_widgets.widgets.klockin_multi_select_field import HorillaMultiSelectField
 
 default_select_option_template = forms.Select.option_template_name
-forms.Select.option_template_name = "klockin_widgets/horilla_select_option.html"
+forms.Select.option_template_name = "klockin_widgets/klockin_select_option.html"
 
 
 class HorillaForm(forms.Form):

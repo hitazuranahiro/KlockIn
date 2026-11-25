@@ -22,7 +22,7 @@ from django.utils.safestring import mark_safe
 from django.utils.translation import gettext_lazy as _
 
 from klockin.config import import_method
-from klockin.horilla_middlewares import _thread_locals
+from klockin.klockin_middlewares import _thread_locals
 from klockin_views.related_link_registry import resolve_detail_link
 
 register = template.Library()

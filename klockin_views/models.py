@@ -2,7 +2,7 @@ import json
 
 from django.db import models
 
-from klockin.horilla_middlewares import _thread_locals
+from klockin.klockin_middlewares import _thread_locals
 from klockin.models import HorillaModel
 from klockin_auth.models import HorillaUser
 

@@ -11,7 +11,7 @@ from django.forms.utils import pretty_name
 from django.templatetags.static import static
 from django.urls import reverse
 
-from klockin import horilla_middlewares
+from klockin import klockin_middlewares
 from klockin_widgets.generic_ajax import dump_queryset
 
 
@@ -73,9 +73,9 @@ class HorillaMultiSelectWidget(forms.Widget):
         context = super().get_context(name, value, attrs)
         # Django form widget templates don't receive `request` in their
         # context by default, which breaks the {% get_company %} templatetag
-        # (theme lookup) used inside horilla_multiselect_widget.html. Pull it
+        # (theme lookup) used inside klockin_multiselect_widget.html. Pull it
         # from the thread-local set by ThreadLocalMiddleware instead.
-        context["request"] = horilla_middlewares._thread_locals.request
+        context["request"] = klockin_middlewares._thread_locals.request
         # Add your custom data to the context
         from klockin_widgets.filters import get_picker_groups
 

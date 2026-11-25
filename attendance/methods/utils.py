@@ -168,7 +168,7 @@ def get_client_ip(request):
     """
     The caller's IP, the same address django-axes uses for lockouts
     (klockin.client_ip): X-Forwarded-For counts only when the connection comes
-    from a trusted reverse proxy (HORILLA_TRUSTED_PROXIES). Trusting the
+    from a trusted reverse proxy (KLOCKIN_TRUSTED_PROXIES). Trusting the
     header unconditionally lets any client claim to be calling from an
     allowed office network, since it is attacker-supplied.
     """
@@ -696,7 +696,7 @@ def parse_time(time_str):
         return time_str
 
     if isinstance(time_str, str):
-        for format_str in settings.HORILLA_TIME_FORMATS.values():
+        for format_str in settings.KLOCKIN_TIME_FORMATS.values():
             try:
                 return datetime.strptime(time_str, format_str).time()
             except ValueError:
@@ -724,7 +724,7 @@ def get_date(date):
     if isinstance(date, datetime):
         return date
     elif isinstance(date, str):
-        for format_name, format_str in settings.HORILLA_DATE_FORMATS.items():
+        for format_name, format_str in settings.KLOCKIN_DATE_FORMATS.items():
             try:
                 return datetime.strptime(date, format_str)
             except ValueError:

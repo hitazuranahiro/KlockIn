@@ -24,7 +24,7 @@ from django.utils.translation import gettext_lazy as _
 from PIL import Image
 
 from accessibility.accessibility import ACCESSBILITY_FEATURE
-from base.horilla_company_manager import HorillaCompanyManager
+from base.klockin_company_manager import HorillaCompanyManager
 from base.models import (
     Company,
     Department,
@@ -36,8 +36,8 @@ from base.models import (
     validate_time_format,
 )
 from employee.methods.duration_methods import format_time, strtime_seconds
-from klockin import horilla_middlewares
-from klockin.horilla_middlewares import _thread_locals
+from klockin import klockin_middlewares
+from klockin.klockin_middlewares import _thread_locals
 from klockin.methods import get_horilla_model_class
 from klockin.models import HorillaModel, has_xss, upload_path
 from klockin_audit.methods import get_diff
@@ -688,7 +688,7 @@ class Employee(models.Model):
         """
         if apps.is_installed("attendance"):
             Attendance = get_horilla_model_class("attendance", "attendance")
-            request = getattr(horilla_middlewares._thread_locals, "request", None)
+            request = getattr(klockin_middlewares._thread_locals, "request", None)
 
             if request is not None:
                 if (
@@ -827,7 +827,7 @@ class Employee(models.Model):
         self.full_clean()
         super().save(*args, **kwargs)
 
-        request = getattr(horilla_middlewares._thread_locals, "request", None)
+        request = getattr(klockin_middlewares._thread_locals, "request", None)
         if request and not self.is_active and self.get_archive_condition() is not False:
             self.is_active = True
             super().save(*args, **kwargs)

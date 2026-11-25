@@ -5,7 +5,7 @@ from django.db import models
 from django.db.models.signals import m2m_changed, post_save
 from django.dispatch import receiver
 
-from klockin.horilla_middlewares import _thread_locals
+from klockin.klockin_middlewares import _thread_locals
 from klockin_meet.methods import create_calendar_event, update_calendar_event
 from klockin_meet.models import GoogleMeeting
 

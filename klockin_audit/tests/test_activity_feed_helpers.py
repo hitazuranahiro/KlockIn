@@ -39,16 +39,16 @@ class HistoryDateLabelTests(SimpleTestCase):
 
 class SystemAuditActorTests(SimpleTestCase):
     def test_existing_system_account_uses_klockin_display(self):
-        system_account = SimpleNamespace(
-            username="Horilla Bot",
-            employee_get=SimpleNamespace(get_full_name=lambda: "Horilla Bot"),
-        )
-        entry = SimpleNamespace(actor=system_account, action=0)
-        item = normalize_log_entries([entry])[0]
+        for username in ("KlockIN Bot", "Horilla Bot"):
+            with self.subTest(username=username):
+                employee = SimpleNamespace(get_full_name=lambda name=username: name)
+                system_account = SimpleNamespace(username=username, employee_get=employee)
+                entry = SimpleNamespace(actor=system_account, action=0)
+                item = normalize_log_entries([entry])[0]
 
-        self.assertEqual(item["actor_name"], "KlockIN Bot")
-        self.assertEqual(item["actor_avatar"], static("klockin/mark.png"))
-        self.assertEqual(system_account.username, "Horilla Bot")
+                self.assertEqual(item["actor_name"], "KlockIN Bot")
+                self.assertEqual(item["actor_avatar"], static("klockin/mark.png"))
+                self.assertEqual(system_account.username, username)
 
     def test_automated_tracking_entry_uses_same_origin_mark(self):
         entries = normalize_tracking_entries(

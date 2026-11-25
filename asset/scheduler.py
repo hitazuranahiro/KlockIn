@@ -10,6 +10,7 @@ from django.urls import reverse
 from django.utils.translation import gettext_noop
 
 from klockin.scheduling import register_job
+from klockin_auth.system_accounts import get_system_bot
 from notifications.signals import notify
 
 
@@ -24,7 +25,7 @@ def notify_expiring_assets():
     assets = Asset.objects.all()
 
     # Cache bot & superuser once
-    bot = HorillaUser.objects.filter(username="Horilla Bot").only("id").first()
+    bot = get_system_bot()
     superuser = HorillaUser.objects.filter(is_superuser=True).only("id").first()
 
     # Query only assets that are expiring today
@@ -75,12 +76,11 @@ def notify_expiring_documents():
     """
     Finds all Expiring Documents and send a notification on the notify_before date.
     """
-    from klockin_auth.models import HorillaUser
     from klockin_documents.models import Document
 
     today = date.today()
     documents = Document.objects.all()
-    bot = HorillaUser.objects.filter(username="Horilla Bot").first()
+    bot = get_system_bot()
     for document in documents:
         if document.expiry_date:
             expiry_date = document.expiry_date

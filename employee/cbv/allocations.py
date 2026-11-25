@@ -23,12 +23,12 @@ from django.views.generic import View
 
 from base.forms import AddToUserGroupForm, ModelForm, forms
 from base.methods import paginator_qry
-from base.templatetags.horillafilters import app_installed
+from base.templatetags.klockinfilters import app_installed
 from base.views import get_models_in_app
 from employee.cbv.accessibility import allocation_accessibility
 from employee.models import Employee, EmployeeBankDetails, EmployeeWorkInformation
 from employee.models import models as django_models
-from klockin.horilla_middlewares import _thread_locals
+from klockin.klockin_middlewares import _thread_locals
 from klockin.http import HorillaRedirect
 from klockin.methods import handle_no_permission
 from klockin_views.cbv_methods import (

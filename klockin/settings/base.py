@@ -1,5 +1,5 @@
 """
-base.py — Main Django settings for Horilla
+base.py — Main Django settings for KlockIN
 """
 
 import os
@@ -12,6 +12,9 @@ import environ
 from django.contrib.messages import constants as messages
 from django.core.exceptions import ImproperlyConfigured
 from django.core.files.storage import FileSystemStorage
+
+from .compat import apply_legacy_aliases as _apply_legacy_aliases
+from .compat import environment_key as _environment_key
 
 # ========================================
 # BASE PATH & ENVIRONMENT CONFIGURATION
@@ -36,7 +39,7 @@ SECRET_KEY = env("SECRET_KEY")
 DEBUG = env("DEBUG")
 ALLOWED_HOSTS = env("ALLOWED_HOSTS")
 CSRF_TRUSTED_ORIGINS = env("CSRF_TRUSTED_ORIGINS")
-HORILLA_ENV = env("HORILLA_ENV", default="")
+KLOCKIN_ENV = env(_environment_key("ENV"), default="")
 REDIS_URL = env("REDIS_URL", default=None)
 
 # Default site ID for django.contrib.sites framework.
@@ -205,7 +208,7 @@ MIDDLEWARE = [
     "django.middleware.common.CommonMiddleware",
     "corsheaders.middleware.CorsMiddleware",
     "simple_history.middleware.HistoryRequestMiddleware",
-    "klockin.horilla_middlewares.DefaultLanguageMiddleware",
+    "klockin.klockin_middlewares.DefaultLanguageMiddleware",
     "django.middleware.locale.LocaleMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
@@ -216,12 +219,12 @@ MIDDLEWARE = [
     "base.middleware.ForcePasswordChangeMiddleware",
     "base.middleware.TwoFactorAuthMiddleware",
     "accessibility.middlewares.AccessibilityMiddleware",
-    "klockin.horilla_middlewares.MethodNotAllowedMiddleware",
-    "klockin.horilla_middlewares.SVGSecurityMiddleware",
-    "klockin.horilla_middlewares.MissingParameterMiddleware",
-    "klockin.horilla_middlewares.BulkDeleteSummaryMiddleware",
-    "klockin.horilla_middlewares.ExportDownloadCookieMiddleware",
-    "klockin.horilla_middlewares.ExportOptionsMiddleware",
+    "klockin.klockin_middlewares.MethodNotAllowedMiddleware",
+    "klockin.klockin_middlewares.SVGSecurityMiddleware",
+    "klockin.klockin_middlewares.MissingParameterMiddleware",
+    "klockin.klockin_middlewares.BulkDeleteSummaryMiddleware",
+    "klockin.klockin_middlewares.ExportDownloadCookieMiddleware",
+    "klockin.klockin_middlewares.ExportOptionsMiddleware",
     "auditlog.middleware.AuditlogMiddleware",
     # Last: needs request.user from AuthenticationMiddleware, and
     # converts a PermissionDenied from the Axes backend into the
@@ -388,6 +391,8 @@ TEMPLATES = [
                 "klockin_crumbs.context_processors.breadcrumbs",
             ],
             "loaders": [("django.template.loaders.cached.Loader", _TEMPLATE_LOADERS)],
+            # Stored template overrides may still load the old library name.
+            "libraries": {"horillafilters": "base.templatetags.klockinfilters"},
         },
     },
 ]
@@ -404,7 +409,7 @@ TIME_ZONE = env("TIME_ZONE", default="Asia/Manila")
 # "This Week" / "Last Week": 0 = Sunday, 1 = Monday ... 6 = Saturday.
 # Monday matches the attendance dashboard and the other week filters.
 # Read as text: an empty or invalid value falls back to Monday (see week_start).
-HORILLA_FIRST_DAY_OF_WEEK = env("HORILLA_FIRST_DAY_OF_WEEK", default="1")
+KLOCKIN_FIRST_DAY_OF_WEEK = env(_environment_key("FIRST_DAY_OF_WEEK"), default="1")
 USE_I18N = True
 USE_TZ = True
 
@@ -449,7 +454,7 @@ from klockin.observability import init_sentry  # noqa: E402
 SENTRY_DSN = env("SENTRY_DSN", default="")
 init_sentry(
     dsn=SENTRY_DSN,
-    environment=HORILLA_ENV or ("development" if DEBUG else "production"),
+    environment=KLOCKIN_ENV or ("development" if DEBUG else "production"),
     release=_horilla_version,
     traces_sample_rate=env.float("SENTRY_TRACES_SAMPLE_RATE", default=0.0),
 )
@@ -483,10 +488,14 @@ NESTED_SUBORDINATE_VISIBILITY = False
 TWO_FACTORS_AUTHENTICATION = False
 # When True, /ready/ returns 503 until run_scheduler has registered jobs.
 # Off by default so Docker CI (web without the scheduler service) still passes.
-HORILLA_REQUIRE_SCHEDULER = env.bool("HORILLA_REQUIRE_SCHEDULER", default=False)
+KLOCKIN_REQUIRE_SCHEDULER = env.bool(
+    _environment_key("REQUIRE_SCHEDULER"), default=False
+)
 # Days of scheduler job-run history (django_apscheduler's DjangoJobExecution)
 # kept by the daily trim_scheduler_history job; older rows are deleted.
-HORILLA_SCHEDULER_HISTORY_DAYS = env.int("HORILLA_SCHEDULER_HISTORY_DAYS", default=7)
+KLOCKIN_SCHEDULER_HISTORY_DAYS = env.int(
+    _environment_key("SCHEDULER_HISTORY_DAYS"), default=7
+)
 
 SIDEBARS = [
     "employee",
@@ -537,8 +546,8 @@ COMPANY_SCOPED_PERMISSIONS = env.bool("COMPANY_SCOPED_PERMISSIONS", default=True
 # default: a formula is code that runs on the server for every payslip, so it is
 # opt-in. Formulas already stored keep being evaluated either way, so turning
 # this off never stops a payroll run; it only stops new code going in.
-HORILLA_ALLOW_PYTHON_TAX_FORMULAS = env.bool(
-    "HORILLA_ALLOW_PYTHON_TAX_FORMULAS", default=False
+KLOCKIN_ALLOW_PYTHON_TAX_FORMULAS = env.bool(
+    _environment_key("ALLOW_PYTHON_TAX_FORMULAS"), default=False
 )
 
 NO_PERMISSION_MODALS = [
@@ -596,7 +605,7 @@ NO_PERMISSION_MODALS = [
 
 FILE_STORAGE = FileSystemStorage(location="csv_tmp/")
 
-HORILLA_DATE_FORMATS = {
+KLOCKIN_DATE_FORMATS = {
     "DD/MM/YY": "%d/%m/%y",
     "DD-MM-YYYY": "%d-%m-%Y",
     "DD.MM.YYYY": "%d.%m.%Y",
@@ -611,7 +620,7 @@ HORILLA_DATE_FORMATS = {
     "dddd, MMMM D, YYYY": "%A, %B %d, %Y",
 }
 
-HORILLA_TIME_FORMATS = {
+KLOCKIN_TIME_FORMATS = {
     "hh:mm A": "%I:%M %p",  # 12-hour format
     "HH:mm": "%H:%M",  # 24-hour format
     "HH:mm:ss.SSSSSS": "%H:%M:%S.%f",  # 24-hour format with seconds and microseconds
@@ -690,14 +699,14 @@ AXES_ENABLE_ADMIN = True
 # one of these reverse proxies (IPs, CIDR ranges or hostnames; the Docker setup
 # uses "nginx"), reading the entry the proxy itself appended. Empty: no proxy,
 # the header is ignored. Also used for the attendance office-IP restriction.
-HORILLA_TRUSTED_PROXIES = env.list("HORILLA_TRUSTED_PROXIES", default=[])
+KLOCKIN_TRUSTED_PROXIES = env.list(_environment_key("TRUSTED_PROXIES"), default=[])
 AXES_CLIENT_IP_CALLABLE = "klockin.client_ip.client_ip"
 
 
 # ========================================
 # PRODUCTION SECURITY GATES
 # ========================================
-# Fail closed when DEBUG=False or HORILLA_ENV=production. Local DEBUG=True
+# Fail closed when DEBUG=False or KLOCKIN_ENV=production. Local DEBUG=True
 # tutorials keep insecure-but-documented defaults for open-source onboarding.
 from klockin.settings.security import (  # noqa: E402
     apply_secure_defaults,
@@ -705,7 +714,7 @@ from klockin.settings.security import (  # noqa: E402
     validate_production_secrets,
 )
 
-IS_PRODUCTION = is_production_mode(DEBUG, HORILLA_ENV)
+IS_PRODUCTION = is_production_mode(DEBUG, KLOCKIN_ENV)
 KLOCKIN_REQUIRE_EVIDENCE_ENCRYPTION = IS_PRODUCTION or env.bool(
     "KLOCKIN_REQUIRE_EVIDENCE_ENCRYPTION", default=False
 )
@@ -714,7 +723,7 @@ if IS_PRODUCTION:
     validate_production_secrets(SECRET_KEY, ALLOWED_HOSTS, DB_INIT_PASSWORD)
 
 if IS_PRODUCTION:
-    # Same switch as the secrets gate above: HORILLA_ENV=production must not
+    # Same switch as the secrets gate above: KLOCKIN_ENV=production must not
     # pass secret validation and then ship insecure cookies because DEBUG was
     # left on.
     globals().update(apply_secure_defaults(env, DEBUG))
@@ -741,3 +750,5 @@ if "test" in sys.argv:
     REST_FRAMEWORK["DEFAULT_THROTTLE_RATES"] = {
         scope: None for scope in REST_FRAMEWORK["DEFAULT_THROTTLE_RATES"]
     }
+
+_apply_legacy_aliases(globals())

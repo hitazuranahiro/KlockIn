@@ -12,7 +12,7 @@ from django.utils.translation import gettext as _
 
 from employee.models import Employee
 from klockin.filters import HorillaFilterSet
-from klockin.horilla_middlewares import _thread_locals
+from klockin.klockin_middlewares import _thread_locals
 from klockin_auth.models import HorillaUser
 
 PERMISSION_FIELD = "employee_user_id__user_permissions"

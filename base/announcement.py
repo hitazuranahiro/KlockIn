@@ -197,7 +197,7 @@ def delete_announcement(request, anoun_id):
     """
     This method is used to delete announcements.
     """
-    from klockin.horilla_middlewares import _thread_locals
+    from klockin.klockin_middlewares import _thread_locals
 
     announcement = Announcement.find(anoun_id)
     if announcement:

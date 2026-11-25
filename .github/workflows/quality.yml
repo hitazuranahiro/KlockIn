@@ -35,7 +35,7 @@ jobs:
       - name: Cache spaCy model wheel
         uses: actions/cache@v4
         with:
-          path: ~/.cache/horilla-ci
+          path: ~/.cache/klockin-ci
           key: spacy-model-${{ hashFiles('requirements.txt') }}
           restore-keys: |
             spacy-model-
@@ -188,7 +188,7 @@ jobs:
       - name: Cache spaCy model wheel
         uses: actions/cache@v4
         with:
-          path: ~/.cache/horilla-ci
+          path: ~/.cache/klockin-ci
           key: spacy-model-${{ hashFiles('requirements.txt') }}
           restore-keys: |
             spacy-model-

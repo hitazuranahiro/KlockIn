@@ -76,13 +76,13 @@ from base.models import (
 from base.widgets import CustomModelChoiceWidget
 from employee.filters import EmployeeFilter
 from employee.models import Employee, EmployeeTag
-from klockin import horilla_middlewares
-from klockin.horilla_middlewares import _thread_locals
+from klockin import klockin_middlewares
+from klockin.klockin_middlewares import _thread_locals
 from klockin.methods import get_horilla_model_class
 from klockin.uploaded_files import read_uploaded_image
 from klockin_audit.models import AuditTag
 from klockin_auth.models import HorillaUser
-from klockin_widgets.widgets.horilla_multi_select_field import HorillaMultiSelectField
+from klockin_widgets.widgets.klockin_multi_select_field import HorillaMultiSelectField
 from klockin_widgets.widgets.select_widgets import HorillaMultiSelectWidget
 
 # your form here
@@ -196,7 +196,7 @@ class ModelForm(forms.ModelForm):
 
         reload_queryset(self.fields)
 
-        request = getattr(horilla_middlewares._thread_locals, "request", None)
+        request = getattr(klockin_middlewares._thread_locals, "request", None)
 
         today = date.today()
         now = datetime.now()
@@ -480,7 +480,7 @@ class AssignUserGroup(Form):
             {"data-placeholder": _("Search employees...")}
         )
         from base.auth_backends import company_scoped_active, get_assigned_company_ids
-        from klockin.horilla_middlewares import _thread_locals
+        from klockin.klockin_middlewares import _thread_locals
 
         self._grantable_company_ids = None
         if not company_scoped_active():
@@ -1638,7 +1638,7 @@ class EmployeeShiftScheduleUpdateForm(ModelForm):
         """
 
         context = {"form": self}
-        table_html = render_to_string("horilla_form.html", context)
+        table_html = render_to_string("klockin_form.html", context)
         return table_html
 
     def clean(self):
@@ -1726,7 +1726,7 @@ class EmployeeShiftScheduleForm(ModelForm):
         """
 
         context = {"form": self}
-        table_html = render_to_string("horilla_form.html", context)
+        table_html = render_to_string("klockin_form.html", context)
         return table_html
 
     def clean(self):
@@ -2273,7 +2273,7 @@ class ShiftRequestForm(ModelForm):
         Render the form fields as HTML table rows with Bootstrap styling.
         """
         context = {"form": self}
-        table_html = render_to_string("horilla_form.html", context)
+        table_html = render_to_string("klockin_form.html", context)
         return table_html
 
     def clean(self):
@@ -2370,7 +2370,7 @@ class ShiftAllocationForm(ModelForm):
         Render the form fields as HTML table rows with Bootstrap styling.
         """
         context = {"form": self}
-        table_html = render_to_string("horilla_form.html", context)
+        table_html = render_to_string("klockin_form.html", context)
         return table_html
 
     def save(self, commit: bool = ...):
@@ -2422,7 +2422,7 @@ class WorkTypeRequestForm(ModelForm):
         Render the form fields as HTML table rows with Bootstrap styling.
         """
         context = {"form": self}
-        table_html = render_to_string("horilla_form.html", context)
+        table_html = render_to_string("klockin_form.html", context)
         return table_html
 
     def save(self, commit: bool = ...):
@@ -2743,7 +2743,7 @@ class TagsForm(ModelForm):
         Render the form fields as HTML table rows with Bootstrap styling.
         """
         context = {"form": self}
-        table_html = render_to_string("horilla_form.html", context)
+        table_html = render_to_string("klockin_form.html", context)
         return table_html
 
 
@@ -2845,7 +2845,7 @@ class DynamicMailConfForm(ModelForm):
         Render the form fields as HTML table rows with Bootstrap styling.
         """
         context = {"form": self}
-        table_html = render_to_string("horilla_form.html", context)
+        table_html = render_to_string("klockin_form.html", context)
         return table_html
 
 

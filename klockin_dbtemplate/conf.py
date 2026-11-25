@@ -1,7 +1,7 @@
 """
-Configuration for horilla_dbtemplate.
+Configuration for the database template application.
 
-Reads from Django settings with HORILLA_DBTEMPLATE_* prefix.
+Reads from Django settings with KLOCKIN_DBTEMPLATE_* prefix.
 Django 6.x compatible.
 """
 
@@ -9,12 +9,14 @@ from django.conf import settings
 
 
 def get_setting(name, default=None):
-    """Get a setting with HORILLA_DBTEMPLATE_ prefix."""
-    full_name = f"HORILLA_DBTEMPLATE_{name}"
-    return getattr(settings, full_name, default)
+    """Get a setting with KLOCKIN_DBTEMPLATE_ prefix."""
+    primary = f"KLOCKIN_DBTEMPLATE_{name}"
+    if hasattr(settings, primary):
+        return getattr(settings, primary)
+    return getattr(settings, f"HORILLA_DBTEMPLATE_{name}", default)
 
 
-# Cache backend name from CACHES (e.g. "default" or "horilla_dbtemplate")
+# Cache backend name from CACHES (e.g. "default" or "klockin_dbtemplate")
 CACHE_BACKEND = get_setting("CACHE_BACKEND", "default")
 
 # Whether to auto-populate content from filesystem/app loaders when content is empty

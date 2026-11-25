@@ -283,7 +283,7 @@ class SurveyTemplateNavView(HorillaNavView):
     filter_form_context_name = "form"
     filter_body_template = "survey/filter.html"
     search_swap_target = "#view-container"
-    # Modern slide-over filter panel (horilla_nav.html's .oh-filter-modern
+    # Modern slide-over filter panel (klockin_nav.html's .oh-filter-modern
     # styles) -- same treatment as every other modernized nav view this
     # session. Presentational only; no change needed to SurveyFilter.
     modern_filter = True
@@ -316,7 +316,7 @@ class SurveyQuestionNavView(HorillaNavView):
     filter_form_context_name = "form"
     filter_body_template = "survey/filter.html"
     search_swap_target = "#questionViewContainer"
-    # Modern slide-over filter panel (horilla_nav.html's .oh-filter-modern
+    # Modern slide-over filter panel (klockin_nav.html's .oh-filter-modern
     # styles) -- same treatment as every other modernized nav view this
     # session. Presentational only; no change needed to SurveyFilter.
     modern_filter = True

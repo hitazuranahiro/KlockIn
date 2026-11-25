@@ -7,7 +7,7 @@ close its "Exporting..." dialog (static/index/index.js).
 from django.http import HttpResponse
 from django.test import RequestFactory, SimpleTestCase
 
-from klockin.horilla_middlewares import ExportDownloadCookieMiddleware
+from klockin.klockin_middlewares import ExportDownloadCookieMiddleware
 
 
 def _run(response, **query):

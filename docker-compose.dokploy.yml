@@ -1,7 +1,7 @@
 # GitHub-backed Dokploy service. Dokploy Traefik handles the public HTTPS route.
 x-klockin-env: &klockin-env
   DEBUG: "0"
-  HORILLA_ENV: production
+  KLOCKIN_ENV: production
   DB_HOST: db
   SECRET_KEY: ${SECRET_KEY:?Set SECRET_KEY in Dokploy Environment}
   DB_INIT_PASSWORD: ${DB_INIT_PASSWORD:?Set DB_INIT_PASSWORD in Dokploy Environment}
@@ -12,7 +12,7 @@ x-klockin-env: &klockin-env
   KLOCKIN_EVIDENCE_KEYS: ${KLOCKIN_EVIDENCE_KEYS:?Set KLOCKIN_EVIDENCE_KEYS in Dokploy Environment}
   KLOCKIN_SELFIE_ROOT: /app/private-media/attendance
   KLOCKIN_UPLOAD_STORAGE: ${KLOCKIN_UPLOAD_STORAGE:-local}
-  HORILLA_TRUSTED_PROXIES: ${HORILLA_TRUSTED_PROXIES-dokploy-traefik}
+  KLOCKIN_TRUSTED_PROXIES: ${KLOCKIN_TRUSTED_PROXIES-${HORILLA_TRUSTED_PROXIES-dokploy-traefik}}
   SECURE_SSL_REDIRECT: "1"
 
 services:
@@ -22,7 +22,7 @@ services:
     environment:
       <<: *klockin-env
       # Only the scheduler's health check requires it to register background jobs.
-      HORILLA_REQUIRE_SCHEDULER: "0"
+      KLOCKIN_REQUIRE_SCHEDULER: "0"
     expose: ["8000"]
     volumes:
       - media:/app/media
@@ -53,7 +53,7 @@ services:
     env_file: [.env]
     environment:
       <<: *klockin-env
-      HORILLA_SKIP_RELEASE_TASKS: "1"
+      KLOCKIN_SKIP_RELEASE_TASKS: "1"
     volumes:
       - media:/app/media
       - private_attendance:/app/private-media/attendance

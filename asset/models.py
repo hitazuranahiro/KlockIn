@@ -14,7 +14,7 @@ from django.utils.html import format_html
 from django.utils.text import format_lazy
 from django.utils.translation import gettext_lazy as _
 
-from base.horilla_company_manager import HorillaCompanyManager
+from base.klockin_company_manager import HorillaCompanyManager
 from base.models import Company
 from employee.models import Employee
 from klockin.models import HorillaModel, upload_path

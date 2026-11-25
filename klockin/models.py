@@ -21,7 +21,7 @@ from django.urls import reverse
 from django.utils.text import slugify
 from django.utils.translation import gettext_lazy as _
 
-from klockin.horilla_middlewares import _thread_locals
+from klockin.klockin_middlewares import _thread_locals
 from klockin.inherit.model_inherit import EXTENSION_REGISTRY, HorillaModelBase
 from klockin_auth.models import HorillaUser
 from klockin_views.cbv_methods import render_template

@@ -12,9 +12,9 @@ from django.urls import reverse
 from django.utils.text import format_lazy
 from django.utils.translation import gettext_lazy as _
 
-from base.horilla_company_manager import HorillaCompanyManager
+from base.klockin_company_manager import HorillaCompanyManager
 from base.models import Company
-from klockin.horilla_middlewares import _thread_locals, get_selected_company
+from klockin.klockin_middlewares import _thread_locals, get_selected_company
 from klockin.models import HorillaModel
 from payroll.models.models import FilingStatus
 

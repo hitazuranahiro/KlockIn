@@ -18,7 +18,7 @@ from django.test import Client, TestCase
 from django.urls import reverse
 
 from employee.models import EmployeeWorkInformation
-from klockin.horilla_middlewares import set_selected_company
+from klockin.klockin_middlewares import set_selected_company
 from klockin.testkit import make_company, make_employee, make_user
 from klockin.testkit.factories import make_available_leave, make_leave_type
 

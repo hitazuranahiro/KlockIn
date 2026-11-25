@@ -34,10 +34,10 @@ from django.utils.html import format_html
 from django.utils.text import slugify
 from django.utils.translation import gettext_lazy as _
 
-from base.horilla_company_manager import HorillaCompanyManager
+from base.klockin_company_manager import HorillaCompanyManager
 from base.models import Company, JobPosition
 from employee.models import Employee
-from klockin.horilla_middlewares import _thread_locals
+from klockin.klockin_middlewares import _thread_locals
 from klockin.models import HorillaModel, upload_path
 from klockin_audit.methods import get_diff
 from klockin_audit.models import HorillaAuditInfo, HorillaAuditLog

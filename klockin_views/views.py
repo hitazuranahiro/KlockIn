@@ -869,7 +869,7 @@ def export_data(request, *args, **kwargs):
     export_format = request.POST.get("format", "csv").lower()
     # The modal lets the user clear the name, so fall back to the default.
     # (and keep it to characters that are safe in a file name / header)
-    from klockin.horilla_middlewares import ExportOptionsMiddleware
+    from klockin.klockin_middlewares import ExportOptionsMiddleware
 
     file_name = (
         ExportOptionsMiddleware._clean_name(request.POST.get("export_file_name", ""))

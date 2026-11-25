@@ -15,7 +15,7 @@ from base.methods import (
     sanitize_mail_template_body,
 )
 from employee.models import Employee
-from klockin import horilla_middlewares
+from klockin import klockin_middlewares
 from klockin.decorators import login_required, owner_can_enter, permission_required
 from klockin.methods import handle_no_permission
 from klockin_views.generic.cbv import views
@@ -351,7 +351,7 @@ class EmployeeBonusPointListView(views.HorillaListView):
 
     def get_queryset(self):
         queryset = super().get_queryset()
-        request = getattr(horilla_middlewares._thread_locals, "request", None)
+        request = getattr(klockin_middlewares._thread_locals, "request", None)
         if is_reportingmanager(request) or request.user.has_perm(
             "pms.view_employeebonuspoint"
         ):

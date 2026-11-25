@@ -12,7 +12,7 @@ from django.contrib.auth.models import Permission
 from django.test import TestCase
 from rest_framework.test import APIClient
 
-from klockin.horilla_middlewares import set_selected_company
+from klockin.klockin_middlewares import set_selected_company
 from klockin.testkit import make_company, make_employee, make_user
 
 EMPLOYEE_LIST_URL = "/api/v1/employee/list/employees/"

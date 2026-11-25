@@ -21,7 +21,7 @@ set -euo pipefail
 REQ_FILE="${REQ_FILE:-requirements.txt}"
 OUT_DIR="${RUNNER_TEMP:-${TMPDIR:-/tmp}}"
 FILTERED="$OUT_DIR/requirements-no-model.txt"
-CACHE_DIR="${HORILLA_CI_CACHE:-$HOME/.cache/horilla-ci}"
+CACHE_DIR="${KLOCKIN_CI_CACHE:-${HORILLA_CI_CACHE:-$HOME/.cache/klockin-ci}}"
 
 MODEL_LINE_RE='^en_core_web_sm @ '
 MODEL_URL="$(grep -E "$MODEL_LINE_RE" "$REQ_FILE" | head -n 1 | sed -E "s/$MODEL_LINE_RE//; s/[[:space:]]+$//")"

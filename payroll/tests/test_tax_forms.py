@@ -23,7 +23,7 @@ def _data(**overrides):
     return data
 
 
-@override_settings(HORILLA_ALLOW_PYTHON_TAX_FORMULAS=True)
+@override_settings(KLOCKIN_ALLOW_PYTHON_TAX_FORMULAS=True)
 class FilingStatusModeSwitchTests(TestCase):
     def _create_in_bracket_mode(self):
         form = FilingStatusForm(data=_data())
@@ -82,7 +82,7 @@ class FilingStatusModeSwitchTests(TestCase):
         self.assertFalse((form.save().python_code or "").strip())
 
 
-@override_settings(HORILLA_ALLOW_PYTHON_TAX_FORMULAS=True)
+@override_settings(KLOCKIN_ALLOW_PYTHON_TAX_FORMULAS=True)
 class TestPyCodeEndpointTests(TestCase):
     """
     The built-in formula preview that replaces the onecompiler.com iframe.
@@ -313,7 +313,7 @@ class SavingAnUnchangedSlabTableTests(TestCase):
         self.assertIsNone(top.max_income)
 
 
-@override_settings(HORILLA_ALLOW_PYTHON_TAX_FORMULAS=True)
+@override_settings(KLOCKIN_ALLOW_PYTHON_TAX_FORMULAS=True)
 class FilingStatusTaxRulesFormTests(TestCase):
     def setUp(self):
         from payroll.models.models import FilingStatus

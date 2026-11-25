@@ -172,26 +172,26 @@ class FenceButtonWithAllCompaniesTests(TestCase):
         return request
 
     def test_all_companies_uses_the_employees_own_company(self):
-        from base.templatetags.horillafilters import is_geofencing_enabled
+        from base.templatetags.klockinfilters import is_geofencing_enabled
 
         make_fence(None, start=True)
         self.assertTrue(is_geofencing_enabled(self.request("all")))
 
     def test_all_companies_follows_a_switched_off_company_fence(self):
-        from base.templatetags.horillafilters import is_geofencing_enabled
+        from base.templatetags.klockinfilters import is_geofencing_enabled
 
         make_fence(None, start=True)
         make_fence(self.acme, start=False)
         self.assertFalse(is_geofencing_enabled(self.request("all")))
 
     def test_a_selected_company_still_uses_that_company(self):
-        from base.templatetags.horillafilters import is_geofencing_enabled
+        from base.templatetags.klockinfilters import is_geofencing_enabled
 
         make_fence(None, start=True)
         self.assertTrue(is_geofencing_enabled(self.request(str(self.acme.pk))))
 
     def test_no_fence_means_no_location_is_requested(self):
-        from base.templatetags.horillafilters import is_geofencing_enabled
+        from base.templatetags.klockinfilters import is_geofencing_enabled
 
         self.assertFalse(is_geofencing_enabled(self.request("all")))
 

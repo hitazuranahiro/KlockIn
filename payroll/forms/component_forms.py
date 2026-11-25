@@ -22,11 +22,11 @@ from base.methods import export_field_label, reload_queryset
 from base.models import Company
 from employee.filters import EmployeeFilter
 from employee.models import BonusPoint, Employee
-from klockin import horilla_middlewares
-from klockin.horilla_middlewares import _thread_locals
+from klockin import klockin_middlewares
+from klockin.klockin_middlewares import _thread_locals
 from klockin.methods import get_horilla_model_class
 from klockin_widgets.forms import HorillaForm, default_select_option_template
-from klockin_widgets.widgets.horilla_multi_select_field import HorillaMultiSelectField
+from klockin_widgets.widgets.klockin_multi_select_field import HorillaMultiSelectField
 from klockin_widgets.widgets.select_widgets import HorillaMultiSelectWidget
 from notifications.signals import notify
 from payroll.models import tax_models as models
@@ -1868,7 +1868,7 @@ class ReimbursementForm(ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        self.request = getattr(horilla_middlewares._thread_locals, "request", None)
+        self.request = getattr(klockin_middlewares._thread_locals, "request", None)
         self.employee = self.get_employee()  # 819
 
         if not self.instance.pk:
@@ -2140,7 +2140,7 @@ class PayslipAutoGenerateForm(ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        active_company_id = horilla_middlewares.get_selected_company()
+        active_company_id = klockin_middlewares.get_selected_company()
         if active_company_id and active_company_id != "all":
             self.fields["company_id"].queryset = Company.objects.filter(
                 id=active_company_id
@@ -2206,7 +2206,7 @@ class PayAdjustmentForm(ModelForm):
         The modal's body: the generic form plus a Delete button for a draft. Put in place of
         ``structured`` by the form view, because the base view resets that on every request.
         """
-        request = getattr(horilla_middlewares._thread_locals, "request", None)
+        request = getattr(klockin_middlewares._thread_locals, "request", None)
         # With the request, so the template has the user's permissions (the Delete button needs them).
         return render_to_string(
             "payroll/pay_adjustment/form.html", {"form": self}, request=request
@@ -2325,7 +2325,7 @@ class PayAdjustmentForm(ModelForm):
         target = self.cleaned_data.get("status") or "draft"
         if commit and target != instance.status:
             if target == "approved":
-                request = getattr(horilla_middlewares._thread_locals, "request", None)
+                request = getattr(klockin_middlewares._thread_locals, "request", None)
                 user = getattr(request, "user", None)
                 instance.approve(approved_by=getattr(user, "employee_get", None))
             elif target == "draft" and instance.status == "approved":

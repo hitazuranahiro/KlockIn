@@ -53,7 +53,7 @@ DEFAULT_TIMEOUT_SECONDS = 2.0
 
 PYTHON_FORMULAS_OFF_MESSAGE = _(
     "Python formulas are turned off on this server. Use tax slabs, or ask whoever "
-    "runs KlockIN to set HORILLA_ALLOW_PYTHON_TAX_FORMULAS=True."
+    "runs KlockIN to set KLOCKIN_ALLOW_PYTHON_TAX_FORMULAS=True."
 )
 
 
@@ -65,7 +65,7 @@ def python_formulas_enabled() -> bool:
     """
     from django.conf import settings
 
-    return bool(getattr(settings, "HORILLA_ALLOW_PYTHON_TAX_FORMULAS", False))
+    return bool(getattr(settings, "KLOCKIN_ALLOW_PYTHON_TAX_FORMULAS", False))
 
 
 def same_formula(first, second) -> bool:

@@ -8,6 +8,7 @@ from django.core.management.base import BaseCommand, CommandError
 
 from employee.models import Employee
 from klockin_auth.models import HorillaUser
+from klockin_auth.system_accounts import SYSTEM_BOT_USERNAME, get_system_bot
 
 
 class Command(BaseCommand):
@@ -59,10 +60,9 @@ class Command(BaseCommand):
             employee.phone = phone
             employee.save()
 
-            bot = HorillaUser.objects.filter(username="Horilla Bot").first()
-            if bot is None:
+            if get_system_bot() is None:
                 HorillaUser.objects.create_user(
-                    username="Horilla Bot",
+                    username=SYSTEM_BOT_USERNAME,
                     password=str(uuid.uuid4()),
                 )
 

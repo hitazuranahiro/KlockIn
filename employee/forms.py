@@ -48,10 +48,10 @@ from employee.models import (
     Policy,
     PolicyMultipleFile,
 )
-from klockin import horilla_middlewares
+from klockin import klockin_middlewares
 from klockin_audit.models import AccountBlockUnblock
 from klockin_auth.models import HorillaUser
-from klockin_widgets.widgets.horilla_multi_select_field import HorillaMultiSelectField
+from klockin_widgets.widgets.klockin_multi_select_field import HorillaMultiSelectField
 from klockin_widgets.widgets.select_widgets import HorillaMultiSelectWidget
 
 logger = logging.getLogger(__name__)
@@ -67,7 +67,7 @@ class ModelForm(forms.ModelForm):
 
         reload_queryset(self.fields)
 
-        request = getattr(horilla_middlewares._thread_locals, "request", None)
+        request = getattr(klockin_middlewares._thread_locals, "request", None)
 
         today = date.today()
         now = datetime.now()

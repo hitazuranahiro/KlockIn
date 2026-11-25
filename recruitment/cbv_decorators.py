@@ -3,7 +3,7 @@ from django.http import HttpResponse
 from django.shortcuts import render
 
 from employee.models import Employee
-from klockin.horilla_middlewares import _thread_locals
+from klockin.klockin_middlewares import _thread_locals
 from klockin.methods import handle_no_permission
 from klockin_views.cbv_methods import decorator_with_arguments
 from recruitment.models import Recruitment, Stage

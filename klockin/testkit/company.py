@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from klockin.horilla_middlewares import get_selected_company, set_selected_company
+from klockin.klockin_middlewares import get_selected_company, set_selected_company
 
 
 def clear_selected_company() -> None:

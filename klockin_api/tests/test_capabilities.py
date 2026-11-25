@@ -13,7 +13,7 @@ that it grants anything; authorization stays with the endpoints.
 from django.test import TestCase
 from rest_framework.test import APIClient
 
-from klockin.horilla_middlewares import set_selected_company
+from klockin.klockin_middlewares import set_selected_company
 from klockin.testkit import make_company, make_employee, make_user
 from klockin_api.api_methods.base.capabilities import build_capabilities
 

@@ -5,7 +5,7 @@ GHSA-r59f-4xh4-58cf: the office-IP restriction trusted the first
 X-Forwarded-For value unconditionally, so an attacker who supplies an
 allowed address in that (client-controlled) header bypasses the restriction
 entirely. get_client_ip() now believes it only on a connection from a
-trusted reverse proxy (HORILLA_TRUSTED_PROXIES) -- the same address
+trusted reverse proxy (KLOCKIN_TRUSTED_PROXIES) -- the same address
 django-axes uses for lockouts (klockin.client_ip).
 
 GHSA-j3hc-6v4r-j658: the web clock-in/out endpoints enforced the office-IP
@@ -35,7 +35,7 @@ from attendance.methods.utils import (
 )
 from attendance.models import Attendance
 from employee.models import EmployeeWorkInformation
-from klockin.horilla_middlewares import set_selected_company
+from klockin.klockin_middlewares import set_selected_company
 from klockin.testkit import make_company, make_employee, make_user
 
 
@@ -46,14 +46,14 @@ class GetClientIpTests(TestCase):
             request.META["HTTP_X_FORWARDED_FOR"] = xff
         return request
 
-    @override_settings(HORILLA_TRUSTED_PROXIES=[])
+    @override_settings(KLOCKIN_TRUSTED_PROXIES=[])
     def test_x_forwarded_for_is_ignored_with_no_trusted_proxy(self):
         # The reported bypass: an attacker-supplied header must not win when
         # this deployment has never declared a trusted reverse proxy.
         request = self._request(remote_addr="203.0.113.9", xff="10.20.30.7")
         self.assertEqual(get_client_ip(request), "203.0.113.9")
 
-    @override_settings(HORILLA_TRUSTED_PROXIES=["10.0.0.1"])
+    @override_settings(KLOCKIN_TRUSTED_PROXIES=["10.0.0.1"])
     def test_behind_a_trusted_proxy_its_appended_address_is_used(self):
         # nginx's $proxy_add_x_forwarded_for appends the address it saw, so
         # the right-most entry is the client; a client-written entry to its

@@ -26,7 +26,7 @@ from employee.forms import BulkUpdateFieldForm, EmployeeExportExcelForm
 from employee.models import Employee, EmployeeBankDetails, EmployeeWorkInformation
 from employee.templatetags.employee_filter import edit_accessibility
 from employee.views import _check_reporting_manager
-from klockin.horilla_middlewares import _thread_locals
+from klockin.klockin_middlewares import _thread_locals
 from klockin.signals import post_generic_delete, post_generic_import
 from klockin_auth.models import HorillaUser
 from klockin_views.cbv_methods import hx_request_required, login_required

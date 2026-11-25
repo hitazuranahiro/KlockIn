@@ -1,7 +1,7 @@
 from django.contrib import messages
 from django.utils.translation import gettext as _
 
-from klockin.horilla_middlewares import _thread_locals
+from klockin.klockin_middlewares import _thread_locals
 from klockin.http import HorillaRedirect
 from project.methods import (
     any_project_manager,

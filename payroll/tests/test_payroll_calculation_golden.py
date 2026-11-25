@@ -13,7 +13,7 @@ deduction lines.
 
 Regenerating the baseline
 -------------------------
-    HORILLA_GOLDEN_WRITE=1 python manage.py test payroll.tests.test_payroll_calculation_golden
+    KLOCKIN_GOLDEN_WRITE=1 python manage.py test payroll.tests.test_payroll_calculation_golden
 
 writes ``payroll/tests/golden/payroll_calculation.json`` instead of asserting.
 Never hand-edit that file, and never regenerate it casually: a diff in it means
@@ -39,6 +39,7 @@ from unittest.mock import patch
 
 from django.test import TestCase
 
+from klockin.settings.compat import environment_key
 from klockin.testkit import make_company, make_employee
 from payroll.methods.payroll_run import payroll_calculation
 from payroll.models.models import Contract
@@ -52,7 +53,7 @@ from payroll.tests.factories_payroll import (
 )
 
 GOLDEN_PATH = Path(__file__).parent / "golden" / "payroll_calculation.json"
-WRITE_MODE = bool(os.environ.get("HORILLA_GOLDEN_WRITE"))
+WRITE_MODE = bool(os.environ.get(environment_key("GOLDEN_WRITE")))
 
 WORKING_DAYS = 22
 PER_DAY = 1000.0
@@ -127,7 +128,7 @@ class PayrollCalculationGoldenTests(TestCase):
             return
         self.assertTrue(
             GOLDEN_PATH.exists(),
-            f"{GOLDEN_PATH} is missing — regenerate with HORILLA_GOLDEN_WRITE=1",
+            f"{GOLDEN_PATH} is missing — regenerate with KLOCKIN_GOLDEN_WRITE=1",
         )
         baseline = json.loads(GOLDEN_PATH.read_text(encoding="utf-8"))
         self.assertIn(name, baseline, f"no baseline for scenario {name!r}")

@@ -10,10 +10,10 @@ from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from google.oauth2.credentials import Credentials
 
-from base.horilla_company_manager import HorillaCompanyManager
+from base.klockin_company_manager import HorillaCompanyManager
 from base.models import Company
 from employee.models import Employee
-from klockin.horilla_middlewares import _thread_locals
+from klockin.klockin_middlewares import _thread_locals
 from klockin.models import HorillaModel, NoPermissionModel
 from klockin_views.cbv_methods import render_template
 from recruitment.models import Candidate

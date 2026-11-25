@@ -20,8 +20,8 @@ from base.methods import reload_queryset
 from employee.filters import EmployeeFilter
 from employee.forms import MultipleFileField
 from employee.models import Employee
-from klockin import horilla_middlewares
-from klockin_widgets.widgets.horilla_multi_select_field import HorillaMultiSelectField
+from klockin import klockin_middlewares
+from klockin_widgets.widgets.klockin_multi_select_field import HorillaMultiSelectField
 from klockin_widgets.widgets.select_widgets import HorillaMultiSelectWidget
 from notifications.signals import notify
 from offboarding.models import (
@@ -579,7 +579,7 @@ class ResignationLetterForm(ModelForm):
                 self.instance.employee_id.get_full_name() + "'s Resignation Letter"
             )
 
-        request = getattr(horilla_middlewares._thread_locals, "request", None)
+        request = getattr(klockin_middlewares._thread_locals, "request", None)
         if request and not request.user.has_perm("offboarding.add_resignationletter"):
             # A regular employee can only resign for themselves, so there is
             # nothing to choose: drop the field and bind the letter to them.
@@ -596,7 +596,7 @@ class ResignationLetterForm(ModelForm):
             self.fields.pop(field, None)
 
     def save(self, commit: bool = ...) -> Any:
-        request = getattr(horilla_middlewares._thread_locals, "request", None)
+        request = getattr(klockin_middlewares._thread_locals, "request", None)
         instance = self.instance
         if (
             not request.user.has_perm("offboarding.add_resignationletter")

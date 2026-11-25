@@ -25,7 +25,7 @@ from attendance.views.views import attendance_validate
 from base.auth_backends import company_scoped_active
 from base.methods import has_export_access
 from employee.models import Employee
-from klockin.horilla_middlewares import get_selected_company
+from klockin.klockin_middlewares import get_selected_company
 
 from .dtr_pdf import render_dtr_pdf
 from .dtr_reports import report_response

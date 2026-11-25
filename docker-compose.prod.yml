@@ -14,7 +14,7 @@ services:
       - .env
     environment: !override
       DEBUG: "0"
-      HORILLA_ENV: production
+      KLOCKIN_ENV: production
       DB_HOST: db
       SECRET_KEY: ${SECRET_KEY:?Set SECRET_KEY in .env}
       ALLOWED_HOSTS: ${ALLOWED_HOSTS:?Set ALLOWED_HOSTS in .env}
@@ -29,7 +29,7 @@ services:
       GUNICORN_LOG_LEVEL: ${GUNICORN_LOG_LEVEL:-info}
       # The client IP for login lockouts and the office-IP restriction comes
       # from X-Forwarded-For only on connections from these proxies.
-      HORILLA_TRUSTED_PROXIES: ${HORILLA_TRUSTED_PROXIES:-nginx}
+      KLOCKIN_TRUSTED_PROXIES: ${KLOCKIN_TRUSTED_PROXIES-${HORILLA_TRUSTED_PROXIES:-nginx}}
     volumes: !override
       - staticfiles:/app/staticfiles
       - media:/app/media
@@ -52,7 +52,7 @@ services:
       - .env
     environment: !override
       DEBUG: "0"
-      HORILLA_ENV: production
+      KLOCKIN_ENV: production
       DB_HOST: db
       SECRET_KEY: ${SECRET_KEY:?Set SECRET_KEY in .env}
       ALLOWED_HOSTS: ${ALLOWED_HOSTS:?Set ALLOWED_HOSTS in .env}
@@ -61,7 +61,7 @@ services:
       KLOCKIN_SELFIE_ROOT: /app/private-media/attendance
       KLOCKIN_EVIDENCE_KEYS: ${KLOCKIN_EVIDENCE_KEYS:?Set KLOCKIN_EVIDENCE_KEYS in .env}
       REDIS_URL: ${REDIS_URL:?Set REDIS_URL in .env}
-      HORILLA_SKIP_RELEASE_TASKS: "1"
+      KLOCKIN_SKIP_RELEASE_TASKS: "1"
     volumes: !override
       - media:/app/media
       - private_attendance:/app/private-media/attendance

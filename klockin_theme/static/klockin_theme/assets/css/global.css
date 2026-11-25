@@ -1512,7 +1512,7 @@ input[type="checkbox"].custom-checkbox:hover {
 
 /* Clickable list rows (row_attrs with hx-get / onclick / data-toggle): show
    the pointer over the whole row, not only on its inner buttons. Covers the
-   Tailwind <table> lists (generic/horilla_list_table.html, group rows, the
+   Tailwind <table> lists (generic/klockin_list_table.html, group rows, the
    pipeline/candidate tables) as well as the div-based sticky tables. */
 tr[hx-get],
 tr[hx-post],
@@ -1686,7 +1686,7 @@ tr[href] > td {
    report/standard_report.html but was never actually defined anywhere the
    theme loads — those cards were rendering with zero border/shadow/padding.
    Tokens match the theme's own real card component
-   (klockin_theme/templates/generic/horilla_card.html) for visual
+   (klockin_theme/templates/generic/klockin_card.html) for visual
    consistency with the Standard Reports catalog grid fixed earlier. */
 .oh-card {
   background-color: hsl(0, 0%, 100%);

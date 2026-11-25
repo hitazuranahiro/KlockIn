@@ -2,7 +2,7 @@
 
 from base.auth_backends import company_scoped_active
 from base.models import Company
-from klockin.horilla_middlewares import get_selected_company
+from klockin.klockin_middlewares import get_selected_company
 
 
 def employee_company(request):

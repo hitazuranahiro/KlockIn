@@ -40,7 +40,7 @@ from base.models import (
 )
 from employee.models import Employee, EmployeeWorkInformation
 from klockin.export_safety import safe_cell
-from klockin.horilla_middlewares import _thread_locals
+from klockin.klockin_middlewares import _thread_locals
 
 CHART_CONFIG = {
     "offline_employees": {
@@ -1047,7 +1047,7 @@ def format_export_value(value, time_format, date_format):
         check_in_time = datetime.strptime(str(value).split(".")[0], "%H:%M:%S").time()
 
         # Print the formatted time for each format
-        for format_name, format_string in settings.HORILLA_TIME_FORMATS.items():
+        for format_name, format_string in settings.KLOCKIN_TIME_FORMATS.items():
             if format_name == time_format:
                 value = check_in_time.strftime(format_string)
 
@@ -1055,7 +1055,7 @@ def format_export_value(value, time_format, date_format):
         # Convert the string to a datetime.date object
         start_date = datetime.strptime(str(value), "%Y-%m-%d").date()
         # Print the formatted date for each format
-        for format_name, format_string in settings.HORILLA_DATE_FORMATS.items():
+        for format_name, format_string in settings.KLOCKIN_DATE_FORMATS.items():
             if format_name == date_format:
                 value = start_date.strftime(format_string)
 
@@ -1546,7 +1546,7 @@ def get_pagination(default=20):
     falling back to their "All Companies" preference, then the
     caller-supplied `default`.
     """
-    from klockin.horilla_middlewares import _thread_locals
+    from klockin.klockin_middlewares import _thread_locals
 
     request = getattr(_thread_locals, "request", None)
     user = request.user
@@ -1820,7 +1820,7 @@ def get_subordinates(request):
 def format_date(date_str):
     # List of possible date formats to try
 
-    for format_name, format_string in settings.HORILLA_DATE_FORMATS.items():
+    for format_name, format_string in settings.KLOCKIN_DATE_FORMATS.items():
         try:
             return datetime.strptime(date_str, format_string).strftime("%Y-%m-%d")
         except ValueError:
