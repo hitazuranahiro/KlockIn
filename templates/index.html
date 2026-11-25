@@ -37,6 +37,8 @@
     <link rel="stylesheet" href="{% static 'build/css/orgChart.css' %}" />
     <link rel="stylesheet" href="{% static '/jquery/jqueryui.css' %}">
     <link rel="stylesheet" href="{% static 'build/css/pivottable.min.css' %}" />
+    <link href="{% static 'klockin/web-punch.css' %}" rel="stylesheet">
+    <script src="{% static 'klockin/web-punch.js' %}" defer></script>
     <script src="{% static '/jquery/ajax.js' %}"></script>
     <script src="{% static '/jquery/jquery.min.js' %}"></script>
     <script src="{% static '/jquery/jqueryui.js' %}"></script>
@@ -149,6 +151,7 @@
                             <div id="attendance-activity-container">
                                 {% include "attendance/components/in_out_component.html" %}
                             </div>
+                            {% include "attendance/components/web_punch_controls.html" %}
                             <!-- End of check in/out button in nav bar -->
                         {% endif %}
 

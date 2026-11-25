@@ -101,6 +101,35 @@ class OfflinePunchSerializer(PunchSerializer):
     punch_selfie = EncodedSelfieField(write_only=True)
 
 
+class BrowserLocationSerializer(serializers.Serializer):
+    latitude = serializers.DecimalField(
+        source="gps_lat", max_digits=9, decimal_places=6,
+        min_value=Decimal(-90), max_value=Decimal(90),
+    )
+    longitude = serializers.DecimalField(
+        source="gps_long", max_digits=9, decimal_places=6,
+        min_value=Decimal(-180), max_value=Decimal(180),
+    )
+
+
+class BrowserPunchSerializer(BrowserLocationSerializer):
+    punch_uuid = serializers.UUIDField()
+    action = serializers.ChoiceField(choices=("in", "out"), write_only=True)
+    selfie = PunchSelfieField(source="punch_selfie", write_only=True)
+
+    def validate_punch_uuid(self, value):
+        if value.version != 4:
+            raise serializers.ValidationError("Use a UUIDv4 for each punch.")
+        return value
+
+    def validate(self, attrs):
+        action = attrs.pop("action")
+        attrs["punch_type"] = (
+            AttendancePunch.PunchType.CLOCK_IN if action == "in" else AttendancePunch.PunchType.CLOCK_OUT
+        )
+        return attrs
+
+
 class DeviceQueueReportSerializer(serializers.Serializer):
     device_id = serializers.CharField(max_length=128, trim_whitespace=False)
     pending_punches = serializers.IntegerField(min_value=0, max_value=2_147_483_647)

@@ -70,6 +70,8 @@ class WorkedTicker extends StatefulWidget {
     required this.workedAtFetch,
     required this.running,
     required this.builder,
+    this.receivedAt,
+    this.clock = DateTime.now,
   });
 
   /// Seconds worked when the data was fetched.
@@ -77,6 +79,8 @@ class WorkedTicker extends StatefulWidget {
 
   /// Clocked in: the count advances. Clocked out: it holds.
   final bool running;
+  final DateTime? receivedAt;
+  final DateTime Function() clock;
   final Widget Function(BuildContext context, int seconds) builder;
 
   @override
@@ -86,7 +90,7 @@ class WorkedTicker extends StatefulWidget {
 class _WorkedTickerState extends State<WorkedTicker>
     with WidgetsBindingObserver {
   Timer? _timer;
-  late DateTime _anchor = DateTime.now();
+  late DateTime _anchor = widget.receivedAt ?? widget.clock();
 
   @override
   void initState() {
@@ -100,8 +104,9 @@ class _WorkedTickerState extends State<WorkedTicker>
     super.didUpdateWidget(old);
     // Fresh data from the server: count from it, not from the old anchor.
     if (old.workedAtFetch != widget.workedAtFetch ||
-        old.running != widget.running) {
-      _anchor = DateTime.now();
+        old.running != widget.running ||
+        old.receivedAt != widget.receivedAt) {
+      _anchor = widget.receivedAt ?? widget.clock();
       _start();
     }
   }
@@ -132,9 +137,11 @@ class _WorkedTickerState extends State<WorkedTicker>
     });
   }
 
-  int get _seconds => widget.running
-      ? widget.workedAtFetch + DateTime.now().difference(_anchor).inSeconds
-      : widget.workedAtFetch;
+  int get _seconds {
+    if (!widget.running) return widget.workedAtFetch;
+    final elapsed = widget.clock().difference(_anchor).inSeconds;
+    return widget.workedAtFetch + (elapsed > 0 ? elapsed : 0);
+  }
 
   @override
   Widget build(BuildContext context) => widget.builder(context, _seconds);

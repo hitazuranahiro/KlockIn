@@ -79,6 +79,12 @@ void main() {
         findsOneWidget,
       );
       expect(find.text('Worked today'), findsNothing);
+      expect(
+        find.text('Connect to the internet to start or end a break.'),
+        findsOneWidget,
+      );
+      expect(find.text('Start break'), findsNothing);
+      expect(find.text('End break'), findsNothing);
 
       now = now.add(const Duration(seconds: 5));
       await tester.pump(const Duration(seconds: 5));

@@ -27,6 +27,7 @@ import '../data/home_api.dart';
 import '../../approvals/data/approval_models.dart';
 import '../../approvals/data/approvals_controller.dart';
 import '../data/home_models.dart';
+import 'break_card.dart';
 import 'home_sections.dart';
 import 'live_clock.dart';
 import 'punch_card.dart';
@@ -86,7 +87,7 @@ class HomeScreen extends ConsumerWidget {
   ///   neither        -> genuine first load, so skeletons
   Widget _body(WidgetRef ref, AsyncValue<HomeData> home) {
     final data = home.value;
-    if (data != null) return _HomeBody(data: data);
+    if (data != null) return _HomeBody(key: ValueKey(data.user.id), data: data);
 
     final error = home.error;
     if (error != null) {
@@ -166,6 +167,11 @@ class _OfflineAttendance extends ConsumerWidget {
               const SizedBox(height: AppSpace.x12),
               Text(
                 'Punches stay on this device until the server is reachable.',
+                style: AppText.body.copyWith(color: AppColors.ink2),
+              ),
+              const SizedBox(height: AppSpace.x6),
+              Text(
+                'Connect to the internet to start or end a break.',
                 style: AppText.body.copyWith(color: AppColors.ink2),
               ),
               if (latest == null)
@@ -276,13 +282,126 @@ class _OfflineWorkedHoursState extends ConsumerState<_OfflineWorkedHours>
   }
 }
 
-class _HomeBody extends ConsumerWidget {
-  const _HomeBody({required this.data});
+class _HomeBody extends ConsumerStatefulWidget {
+  const _HomeBody({super.key, required this.data});
 
   final HomeData data;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<_HomeBody> createState() => _HomeBodyState();
+}
+
+class _HomeBodyState extends ConsumerState<_HomeBody>
+    with WidgetsBindingObserver {
+  Timer? _breakRefresh;
+  BreakPolicy? _latestBreakAction;
+  String? _breakError;
+  bool _savingBreak = false;
+  bool _visible = true;
+
+  BreakPolicy? get _breakPolicy {
+    final action = _latestBreakAction;
+    final policy = widget.data.breakPolicy;
+    if (action != null &&
+        (policy == null || action.asOf.isAfter(policy.asOf))) {
+      return action;
+    }
+    return policy;
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final visible = TickerMode.valuesOf(context).enabled;
+    if (visible && !_visible) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted && _visible) _refreshBreakStatus();
+      });
+    }
+    _visible = visible;
+    _scheduleBreakRefresh();
+  }
+
+  @override
+  void didUpdateWidget(_HomeBody oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    _scheduleBreakRefresh();
+  }
+
+  bool get _hasBreaks =>
+      supportsOfflinePunches &&
+      (_breakPolicy?.enabled == true || _breakPolicy?.isActive == true);
+
+  void _scheduleBreakRefresh() {
+    final state = WidgetsBinding.instance.lifecycleState;
+    if (!_hasBreaks ||
+        !_visible ||
+        (state != null && state != AppLifecycleState.resumed)) {
+      _breakRefresh?.cancel();
+      _breakRefresh = null;
+      return;
+    }
+    _breakRefresh ??= Timer.periodic(const Duration(seconds: 45), (_) {
+      _refreshBreakStatus();
+    });
+  }
+
+  void _refreshBreakStatus() {
+    if (_hasBreaks && !_savingBreak && !ref.read(homeProvider).isLoading) {
+      ref.invalidate(homeProvider);
+    }
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    _scheduleBreakRefresh();
+    if (_visible && state == AppLifecycleState.resumed) _refreshBreakStatus();
+  }
+
+  @override
+  void dispose() {
+    _breakRefresh?.cancel();
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  Future<void> _changeBreak(BreakAction action) async {
+    if (_savingBreak) return;
+    setState(() {
+      _savingBreak = true;
+      _breakError = null;
+    });
+    try {
+      final policy = await ref.read(homeApiProvider).changeBreak(action);
+      if (mounted) setState(() => _latestBreakAction = policy);
+    } on ApiFailure catch (failure) {
+      if (mounted) {
+        setState(() {
+          _breakError = switch (failure) {
+            ApiNetwork() || ApiTimeout() =>
+              'Couldn’t confirm your break. Check your connection and refresh.',
+            _ => failure.message,
+          };
+        });
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _savingBreak = false);
+        _scheduleBreakRefresh();
+        ref.invalidate(homeProvider);
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final data = widget.data;
     final recent = supportsOfflinePunches
         ? ref.watch(recentPunchesProvider).value
         : null;
@@ -303,6 +422,20 @@ class _HomeBody extends ConsumerWidget {
                 : data.punch.clockInTime,
             lastActivityAt: local.at,
           );
+    final policy = _breakPolicy;
+    final clock = ref.watch(homeClockProvider);
+    final showBreakAction = punch.isClockedIn || policy?.isActive == true;
+    final showBreakCard =
+        supportsOfflinePunches &&
+        policy != null &&
+        (policy.isActive ||
+            (policy.enabled && (punch.isClockedIn || policy.usedSeconds > 0)) ||
+            (punch.isClockedIn && _breakError != null));
+    final canStartBreak =
+        policy?.enabled == true &&
+        policy?.canStart == true &&
+        punch.isClockedIn &&
+        data.punch.isClockedIn;
     return ListView(
       physics: const AlwaysScrollableScrollPhysics(),
       padding: EdgeInsets.zero,
@@ -322,7 +455,9 @@ class _HomeBody extends ConsumerWidget {
                 punch: punch,
                 geofence: data.geofence,
                 today: data.today,
-                clock: ref.watch(homeClockProvider),
+                clock: clock,
+                breakActive: policy?.isActive == true,
+                showsBreakCard: showBreakCard,
                 onPunch: !supportsOfflinePunches
                     ? null
                     : () => context.push(
@@ -336,6 +471,30 @@ class _HomeBody extends ConsumerWidget {
                         ),
                       ),
               ),
+
+              if (showBreakCard) ...[
+                const SizedBox(height: AppSpace.x12),
+                BreakCard(
+                  policy: policy,
+                  clock: clock,
+                  busy: _savingBreak,
+                  showAction: showBreakAction,
+                  onAction: policy.isActive
+                      ? () => _changeBreak(BreakAction.end)
+                      : canStartBreak
+                      ? () => _changeBreak(BreakAction.start)
+                      : null,
+                  unavailableReason:
+                      _breakError ??
+                      (!showBreakAction || policy.isActive || canStartBreak
+                          ? null
+                          : !data.punch.isClockedIn
+                          ? 'Sync your clock-in before starting a break.'
+                          : policy.remainingSeconds == 0
+                          ? 'You’ve used your break allowance.'
+                          : 'A break is unavailable for this shift.'),
+                ),
+              ],
 
               const AttendanceSyncCard(),
 

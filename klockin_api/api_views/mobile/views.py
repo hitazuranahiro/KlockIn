@@ -27,6 +27,7 @@ from attendance.models import Attendance, AttendanceActivity
 from employee.models import EmployeeWorkInformation
 from klockin_api.api_methods.base.announcements import announcements_for
 from klockin_api.api_methods.base.capabilities import build_capabilities
+from klockin_attendance.breaks import employee_break_summary, tracked_break_ranges
 from klockin_attendance.policies import FIRST_LAST, duration_totals
 from klockin_attendance.workday import shift_schedules, workday_bounds, workday_date
 
@@ -86,15 +87,13 @@ def _punch_block(attendance, ranges, active_since):
     }
 
 
-def _worked_seconds(attendance, ranges, active_since, confirmed_at):
+def _worked_seconds(attendance, active_since, calculated_seconds):
     if attendance and active_since is None:
         # The settled DTR can contain a supervisor correction or an import.
         if attendance.at_work_second is not None:
             return attendance.at_work_second
         return strtime_seconds(attendance.attendance_worked_hour or "00:00")
-    intervals = [(start, end if end is not None else confirmed_at) for start, end in ranges]
-    paid, _ = duration_totals(intervals, getattr(attendance, "mobile_policy", None))
-    return paid
+    return calculated_seconds
 
 
 def _geofence_block(employee):
@@ -268,10 +267,13 @@ class MobileHomeAPIView(APIView):
         active_since = None
         if attendance_today is None or attendance_today.attendance_clock_out is None:
             active_since = next((start for start, end in ranges if end is None), None)
-        worked_seconds = _worked_seconds(attendance_today, ranges, active_since, confirmed_at)
         policy = getattr(attendance_today, "mobile_policy", None)
         intervals = [(start, end if end is not None else confirmed_at) for start, end in ranges]
-        _, scheduled_break = duration_totals(intervals, policy)
+        tracked_breaks = tracked_break_ranges(attendance_today, as_of=confirmed_at)
+        calculated_seconds, unpaid_break = duration_totals(
+            intervals, policy, excluded_ranges=tracked_breaks,
+        )
+        worked_seconds = _worked_seconds(attendance_today, active_since, calculated_seconds)
         clocked_out_break = 0
         if not policy or policy.mode != FIRST_LAST:
             clocked_out_break = sum(
@@ -279,7 +281,7 @@ class MobileHomeAPIView(APIView):
                 for (_, previous_end), (start, _) in zip(ranges, ranges[1:])
                 if previous_end is not None
             )
-        break_seconds = scheduled_break + clocked_out_break
+        break_seconds = unpaid_break + clocked_out_break
 
         return Response(
             {
@@ -291,6 +293,7 @@ class MobileHomeAPIView(APIView):
                 "capabilities": build_capabilities(request.user),
                 "punch": _punch_block(attendance_today, ranges, active_since),
                 "geofence": _geofence_block(employee),
+                "break_policy": employee_break_summary(employee, as_of=confirmed_at),
                 "today": {
                     "worked": _format_seconds(worked_seconds),
                     "break": _format_seconds(break_seconds),

@@ -84,7 +84,7 @@ class EmployeeDeviceAdmin(admin.ModelAdmin):
 
 @admin.register(AttendancePolicy)
 class AttendancePolicyAdmin(admin.ModelAdmin):
-    list_display = ("company", "mode", "break_start", "break_end")
+    list_display = ("company", "mode", "break_start", "break_end", "break_allowance_minutes")
     search_fields = ("company__company",)
 
     def has_module_permission(self, request):

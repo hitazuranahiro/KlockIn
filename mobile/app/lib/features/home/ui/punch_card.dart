@@ -14,6 +14,8 @@ class PunchCard extends StatelessWidget {
     required this.today,
     required this.clock,
     this.onPunch,
+    this.breakActive = false,
+    this.showsBreakCard = false,
   });
 
   final PunchState punch;
@@ -21,12 +23,14 @@ class PunchCard extends StatelessWidget {
   final TodayTotals today;
   final DateTime Function() clock;
   final VoidCallback? onPunch;
+  final bool breakActive;
+  final bool showsBreakCard;
 
   @override
   Widget build(BuildContext context) {
     final clockedIn = punch.isClockedIn;
     final state = clockedIn
-        ? 'On the clock'
+        ? (breakActive ? 'On break' : 'On the clock')
         : punch.clockInTime != null
         ? 'Clocked out'
         : 'Shift not started';
@@ -55,7 +59,7 @@ class PunchCard extends StatelessWidget {
           padding: const EdgeInsets.all(AppSpace.x16),
           child: WorkedTicker(
             workedAtFetch: today.workedSeconds,
-            running: clockedIn,
+            running: clockedIn && !breakActive,
             builder: (context, worked) {
               final shift = today.shiftSeconds;
               return _ShiftActivity(
@@ -65,6 +69,7 @@ class PunchCard extends StatelessWidget {
                 breakTime: formatShort(
                   TodayTotals.secondsOf(today.breakTime) ?? 0,
                 ),
+                breakLabel: showsBreakCard ? 'Total breaks' : 'Break',
                 overtime: formatShort(
                   TodayTotals.secondsOf(today.overtime) ?? 0,
                 ),
@@ -334,6 +339,7 @@ class _ShiftActivity extends StatelessWidget {
     required this.clockIn,
     required this.latest,
     required this.breakTime,
+    required this.breakLabel,
     required this.overtime,
     required this.remaining,
   });
@@ -342,6 +348,7 @@ class _ShiftActivity extends StatelessWidget {
   final String? clockIn;
   final DateTime? latest;
   final String breakTime;
+  final String breakLabel;
   final String overtime;
   final String? remaining;
 
@@ -401,7 +408,7 @@ class _ShiftActivity extends StatelessWidget {
           spacing: AppSpace.x16,
           runSpacing: AppSpace.x8,
           children: [
-            Text('Break $breakTime', style: AppText.meta),
+            Text('$breakLabel $breakTime', style: AppText.meta),
             Text('Overtime $overtime', style: AppText.meta),
             if (lastTime != null && lastTime != clockIn)
               Text('Last activity · $lastTime local time', style: AppText.meta),

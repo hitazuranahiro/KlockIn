@@ -84,7 +84,7 @@ def report_device_queue(user, device_id, pending_punches, observed_at, received_
     binding.save(update_fields=["pending_punches", "queue_observed_at", "queue_reported_at"])
 
 
-def _request_digest(data):
+def _request_digest(data, *, browser=False):
     photo = hashlib.sha256()
     upload = data["punch_selfie"]
     for chunk in upload.chunks():
@@ -95,7 +95,7 @@ def _request_digest(data):
     longitude = data["gps_long"]
     payload = [
         data["punch_type"],
-        data["punched_at"].isoformat(),
+        "web" if browser else data["punched_at"].isoformat(),
         data["device_id"],
         str(latitude.copy_abs() if latitude.is_zero() else latitude),
         str(longitude.copy_abs() if longitude.is_zero() else longitude),
@@ -130,11 +130,19 @@ def _check_geofence(employee, latitude, longitude):
         )
 
 
-def ingest_punch(user, data, received_at, source):
+def ingest_punch(user, data, received_at, source, *, browser_request=None):
     """Commit immutable evidence once, serialize device and time checks per employee."""
     from .projection import project_punch
 
-    digest = _request_digest(data)
+    browser = source == AttendancePunch.Source.WEB
+    if browser:
+        from .web_punch import prepare_browser_punch, project_legacy_browser_punch
+
+        if browser_request is None:
+            raise ValueError("Browser attendance requires a session request.")
+        data = {**data, "punched_at": received_at, "device_id": "web", "detected_address": ""}
+
+    digest = _request_digest(data, browser=browser)
     upload = data["punch_selfie"]
     punch_uuid = data["punch_uuid"]
     field = AttendancePunch._meta.get_field("punch_selfie")
@@ -149,11 +157,12 @@ def ingest_punch(user, data, received_at, source):
             if existing is not None:
                 return _replay(existing, employee, digest)
 
-            binding = _device_binding(employee, data["device_id"])
+            legacy_day = prepare_browser_punch(browser_request, employee, data, received_at) if browser else None
+            binding = None if browser else _device_binding(employee, data["device_id"])
 
             device_punched_at = data["punched_at"]
             punched_at = (
-                received_at if source == AttendancePunch.Source.ONLINE else device_punched_at
+                device_punched_at if source == AttendancePunch.Source.OFFLINE else received_at
             )
             if AttendancePunch.objects.filter(
                 employee=employee,
@@ -172,10 +181,11 @@ def ingest_punch(user, data, received_at, source):
                 defaults={
                     **data,
                     "punched_at": punched_at,
-                    "device_punched_at": device_punched_at,
+                    "device_punched_at": None if browser else device_punched_at,
                     "employee": employee,
                     "punch_selfie": "",
                     "source": source,
+                    "projectable": legacy_day is None,
                     "request_digest": digest,
                     "server_receive_timestamp": received_at,
                 },
@@ -183,7 +193,7 @@ def ingest_punch(user, data, received_at, source):
             if not created:
                 return _replay(punch, employee, digest)
 
-            if binding is None:
+            if not browser and binding is None:
                 EmployeeDevice.objects.create(employee=employee, device_id=punch.device_id)
 
             filename = f"{punch_uuid.hex}-{uuid4().hex}{Path(upload.name).suffix}"
@@ -192,7 +202,15 @@ def ingest_punch(user, data, received_at, source):
             punch.punch_selfie = selfie_name
             punch.sync_status = AttendancePunch.SyncStatus.SYNCED
             punch.save(update_fields=["punch_selfie", "sync_status"])
-            attendance = project_punch(punch)
+            attendance = (
+                project_legacy_browser_punch(punch, legacy_day)
+                if legacy_day is not None
+                else project_punch(punch)
+            )
+            if browser and attendance is None:
+                raise PunchRejected(
+                    "attendance_unavailable", "This attendance record needs manual review.", 409
+                )
             if attendance is not None and punch.attendance_id != attendance.pk:
                 punch.attendance = attendance
                 punch.save(update_fields=["attendance"])

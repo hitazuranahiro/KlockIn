@@ -94,6 +94,13 @@ def is_clocked_in(user):
     return False
 
 
+@register.filter
+def browser_punch_direction(request):
+    from klockin_attendance.web_punch import browser_punch_direction as direction
+
+    return direction(request)
+
+
 class DynamicRegroupNode(template.Node):
     """
     DynamicRegroupNode

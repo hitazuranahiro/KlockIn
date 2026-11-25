@@ -1,0 +1,14 @@
+<button type="button"
+        class="check {{ action_class }}"
+        data-web-punch="{{ direction }}"
+        data-action-label="{{ action_label }}"
+        aria-haspopup="dialog"
+        aria-label="{{ action_label }}"
+        title="{{ action_label }}">
+    <i class="fa-solid {{ icon }}" aria-hidden="true"></i>
+    <span class="kp-clock-label">{{ action_label }}</span>
+    {% if timer %}
+        <span class="kp-work-timer" data-work-timer="{{ work_seconds|default:0|floatformat:'0u' }}"
+              {% if running %}data-work-running{% endif %} aria-hidden="true"></span>
+    {% endif %}
+</button>

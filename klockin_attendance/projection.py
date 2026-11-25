@@ -12,6 +12,7 @@ from attendance.views.clock_in_out import early_out, late_come
 from base.models import EmployeeShiftDay
 from employee.models import EmployeeWorkInformation
 
+from .breaks import close_attendance_break, tracked_break_ranges
 from .models import AttendancePolicy, AttendancePunch, MobileDayPolicy
 from .policies import duration_totals
 from .workday import WEEKDAYS, shift_schedules, workday_bounds, workday_date
@@ -30,7 +31,30 @@ def _pairs(punches):
         yield opened, None
 
 
-def _summary(activities, policy, zone):
+def attendance_has_manual_history(daily):
+    return (
+        daily.is_validate_request
+        or daily.is_validate_request_approved
+        or daily.attendance_overtime_approve
+        or any(marker.penaltyaccounts_set.exists() for marker in daily.late_come_early_out.all())
+        or daily.history.filter(history_change_reason__startswith=CORRECTION_PREFIX).exists()
+    )
+
+
+def activity_links_match(activities, linked):
+    opened = set()
+    closed = set()
+    for event in linked:
+        if event.punch_type == AttendancePunch.PunchType.CLOCK_IN:
+            opened.add(event.activity_id)
+        else:
+            closed.add(event.activity_id)
+    return opened == set(activities) and closed == {
+        pk for pk, activity in activities.items() if activity.clock_out is not None
+    }
+
+
+def _summary(activities, policy, zone, attendance):
     first = min(activities, key=lambda row: row.in_datetime)
     closed = [row for row in activities if row.out_datetime is not None]
     last = (
@@ -39,7 +63,7 @@ def _summary(activities, policy, zone):
         else None
     )
     ranges = [(row.in_datetime.astimezone(zone), row.out_datetime.astimezone(zone)) for row in closed]
-    seconds, _ = duration_totals(ranges, policy)
+    seconds, _ = duration_totals(ranges, policy, excluded_ranges=tracked_break_ranges(attendance))
     return {
         "attendance_clock_in_date": first.clock_in_date,
         "attendance_clock_in": first.clock_in,
@@ -75,6 +99,7 @@ def project_punch(punch):
         punched_at__gte=start,
         punched_at__lt=end,
         review__isnull=True,
+        projectable=True,
     ).order_by("punched_at", "punch_uuid")
     pairs = list(_pairs(punches))
     if not pairs:
@@ -95,27 +120,18 @@ def project_punch(punch):
     needs_snapshot = daily is None
     if daily is not None:
         policy = getattr(daily, "mobile_policy", None)
-        managed_ids = {
-            event.activity_id for event in punches if event.attendance_id == daily.pk
-        }
-        managed_ids.discard(None)
         if (
             not activities
-            or managed_ids != activities.keys()
-            or daily.is_validate_request
-            or daily.is_validate_request_approved
-            or daily.attendance_overtime_approve
+            or daily.klockin_punches.filter(projectable=False).exists()
+            or not activity_links_match(
+                activities,
+                (event for event in punches if event.attendance_id == daily.pk and event.activity_id),
+            )
+            or attendance_has_manual_history(daily)
             or any(row.in_datetime is None for row in activities.values())
             or any(
-                marker.penaltyaccounts_set.exists()
-                for marker in daily.late_come_early_out.all()
-            )
-            or daily.history.filter(
-                history_change_reason__startswith=CORRECTION_PREFIX
-            ).exists()
-            or any(
                 getattr(daily, key) != value
-                for key, value in _summary(activities.values(), policy, local_zone).items()
+                for key, value in _summary(activities.values(), policy, local_zone, daily).items()
             )
         ):
             return None
@@ -159,7 +175,10 @@ def project_punch(punch):
         if clock_out is not None:
             links[clock_out.pk] = activity.pk
 
-    summary = _summary(projected_activities, policy, local_zone)
+    if daily.pk and all(row.out_datetime is not None for row in projected_activities):
+        checkout = max(row.out_datetime for row in projected_activities)
+        close_attendance_break(daily, checkout)
+    summary = _summary(projected_activities, policy, local_zone, daily)
     if daily.pk is None or any(
         getattr(daily, key) != value for key, value in summary.items()
     ):

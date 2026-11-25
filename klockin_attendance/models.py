@@ -2,6 +2,7 @@ from hashlib import sha256
 
 from django.conf import settings
 from django.core.exceptions import ValidationError
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
 from base.klockin_company_manager import HorillaCompanyManager
@@ -23,6 +24,7 @@ class AttendancePunch(models.Model):
     class Source(models.TextChoices):
         ONLINE = "ONLINE", "Mobile online"
         OFFLINE = "OFFLINE", "Mobile offline"
+        WEB = "WEB", "Web"
 
     class SyncStatus(models.TextChoices):
         SYNCED = "SYNCED", "Synced"
@@ -62,6 +64,7 @@ class AttendancePunch(models.Model):
         max_length=7, choices=SyncStatus.choices, default=SyncStatus.PENDING
     )
     request_digest = models.CharField(max_length=64, editable=False)
+    projectable = models.BooleanField(default=True, editable=False)
 
     @property
     def device_fingerprint(self):
@@ -123,12 +126,18 @@ class PunchReview(models.Model):
 
 
 class AttendancePolicy(models.Model):
-    """Company defaults for new daily mobile attendance records."""
+    """Company attendance defaults and optional employee-tracked breaks."""
 
     company = models.OneToOneField("base.Company", on_delete=models.CASCADE)
     mode = models.CharField(max_length=10, choices=ATTENDANCE_MODES, default=PAIRED)
     break_start = models.TimeField(blank=True, null=True, verbose_name="Unpaid break starts")
     break_end = models.TimeField(blank=True, null=True, verbose_name="Unpaid break ends")
+    break_allowance_minutes = models.PositiveSmallIntegerField(
+        blank=True,
+        null=True,
+        validators=[MinValueValidator(1), MaxValueValidator(1440)],
+        help_text="Daily allowance for employee-tracked unpaid breaks. Leave blank to disable.",
+    )
 
     objects = HorillaCompanyManager("company")
 
@@ -152,6 +161,28 @@ class MobileDayPolicy(models.Model):
     mode = models.CharField(max_length=10, choices=ATTENDANCE_MODES, default=PAIRED)
     break_start = models.TimeField(blank=True, null=True)
     break_end = models.TimeField(blank=True, null=True)
+
+
+class AttendanceBreak(models.Model):
+    """A server-timed unpaid break within a daily attendance record."""
+
+    attendance = models.ForeignKey(
+        "attendance.Attendance", on_delete=models.CASCADE, related_name="tracked_breaks"
+    )
+    started_at = models.DateTimeField()
+    ended_at = models.DateTimeField(blank=True, null=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["attendance"], condition=models.Q(ended_at__isnull=True),
+                name="klockin_one_open_break_per_day",
+            ),
+            models.CheckConstraint(
+                condition=models.Q(ended_at__gte=models.F("started_at")),
+                name="klockin_break_ends_after_start",
+            ),
+        ]
 
 
 class MobileActivity(models.Model):

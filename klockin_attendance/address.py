@@ -1,5 +1,6 @@
 import json
 import logging
+from types import SimpleNamespace
 from urllib.parse import urlsplit
 
 import requests
@@ -76,3 +77,15 @@ def resolve_punch_address(punch):
             punch.detected_address = address
     except (requests.RequestException, ValueError, RecursionError, DatabaseError):
         logger.warning("KlockIN could not resolve or cache a punch address.")
+
+
+def preview_punch_address(gps_lat, gps_long):
+    """Look up the transient browser preview through the configured provider."""
+    endpoint = settings.KLOCKIN_REVERSE_GEOCODER_URL
+    if not endpoint:
+        return ""
+    try:
+        return _lookup_address(endpoint, SimpleNamespace(gps_lat=gps_lat, gps_long=gps_long))
+    except (requests.RequestException, ValueError, RecursionError):
+        logger.warning("KlockIN could not resolve a browser location preview.")
+        return ""

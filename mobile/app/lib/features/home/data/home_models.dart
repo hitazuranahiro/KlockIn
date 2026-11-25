@@ -37,6 +37,70 @@ class PunchState {
   }
 }
 
+enum BreakAction { start, end }
+
+/// Server-confirmed break allowance and use, including any open break.
+class BreakPolicy {
+  const BreakPolicy({
+    required this.enabled,
+    required this.canStart,
+    required this.allowedSeconds,
+    required this.usedSeconds,
+    required this.remainingSeconds,
+    required this.activeSince,
+    required this.asOf,
+    required this.receivedAt,
+  });
+
+  final bool enabled;
+  final bool canStart;
+  final int allowedSeconds;
+  final int usedSeconds;
+  final int remainingSeconds;
+  final DateTime? activeSince;
+  final DateTime asOf;
+  final DateTime receivedAt;
+
+  bool get isActive => activeSince != null;
+
+  static BreakPolicy? fromJson(Object? json, {DateTime? receivedAt}) {
+    if (json is! Map<String, dynamic>) return null;
+    final enabled = json['enabled'];
+    final canStart = json['can_start'];
+    final allowed = json['allowed_seconds'];
+    final used = json['used_seconds'];
+    final remaining = json['remaining_seconds'];
+    final asOfValue = json['as_of'];
+    final activeValue = json['active_since'];
+    final asOf = asOfValue is String ? DateTime.tryParse(asOfValue) : null;
+    final active = activeValue is String
+        ? DateTime.tryParse(activeValue)
+        : null;
+    if (enabled is! bool ||
+        canStart is! bool ||
+        allowed is! int ||
+        allowed < 0 ||
+        used is! int ||
+        used < 0 ||
+        remaining is! int ||
+        remaining < 0 ||
+        asOf == null ||
+        (activeValue != null && active == null)) {
+      return null;
+    }
+    return BreakPolicy(
+      enabled: enabled,
+      canStart: canStart,
+      allowedSeconds: allowed,
+      usedSeconds: used,
+      remainingSeconds: remaining,
+      activeSince: active,
+      asOf: asOf,
+      receivedAt: receivedAt ?? DateTime.now(),
+    );
+  }
+}
+
 class WorkLocation {
   const WorkLocation({
     required this.latitude,
@@ -270,6 +334,7 @@ class HomeData {
     this.announcement,
     this.pendingApprovals,
     this.confirmedWork,
+    this.breakPolicy,
   });
 
   final SignedInUser user;
@@ -281,6 +346,7 @@ class HomeData {
   final int unreadNotifications;
   final AnnouncementSummary? announcement;
   final ConfirmedWorkSnapshot? confirmedWork;
+  final BreakPolicy? breakPolicy;
 
   /// Null on a server before PR #3407 -- the Home approvals band falls back
   /// to counting the full inbox client-side when this is absent.
@@ -298,6 +364,7 @@ class HomeData {
       geofence: GeofenceState.fromJson(sub('geofence')),
       today: TodayTotals.fromJson(sub('today')),
       confirmedWork: ConfirmedWorkSnapshot.fromJson(sub('today')),
+      breakPolicy: BreakPolicy.fromJson(json['break_policy']),
       onLeaveToday: json['on_leave_today'] is List
           ? (json['on_leave_today'] as List)
                 .map(ColleagueOnLeave.fromJson)

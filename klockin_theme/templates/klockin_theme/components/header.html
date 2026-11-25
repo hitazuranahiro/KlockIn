@@ -19,6 +19,7 @@
             <div id="attendance-activity-container" class="workspace-clock">
                 {% include "attendance/components/in_out_component.html" %}
             </div>
+            {% include "attendance/components/web_punch_controls.html" %}
         {% endif %}
         <div class="workspace-tools-wrap">
             <button type="button" class="workspace-icon workspace-tools-toggle" data-workspace-tools aria-controls="workspace-tools" aria-expanded="false" aria-label="{% trans 'Workspace tools' %}">

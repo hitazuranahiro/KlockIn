@@ -27,6 +27,7 @@ from django.views.generic import RedirectView
 from django.views.i18n import JavaScriptCatalog
 
 import notifications.urls
+from klockin_attendance.break_views import web_break
 from klockin_crumbs.views import breadcrumbs_fragment
 
 from . import settings
@@ -122,6 +123,7 @@ def metrics(request):
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("api/v2/attendance/", include("klockin_attendance.urls")),
+    path("timekeeping/break/", web_break, name="klockin-break"),
     path("timekeeping/", include("klockin_attendance.dtr_urls")),
     # django.contrib.auth.urls is here for the password_reset_* routes its forms
     # and mails reverse. Its /accounts/login/ renders registration/login.html,

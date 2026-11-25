@@ -8,6 +8,7 @@ library;
 
 import 'dart:async';
 
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -20,6 +21,7 @@ import 'package:klockin/features/home/data/home_api.dart';
 import 'package:klockin/features/home/data/home_models.dart';
 import 'package:klockin/features/home/ui/home_screen.dart';
 import 'package:klockin/l10n/app_localizations.dart';
+import 'package:klockin/shared/widgets/app_button.dart';
 import 'package:klockin/shared/widgets/app_card.dart';
 
 HomeData sample({
@@ -29,6 +31,7 @@ HomeData sample({
   List<ColleagueOnLeave> onLeave = const [],
   AnnouncementSummary? announcement,
   bool geofence = true,
+  BreakPolicy? breakPolicy,
 }) {
   return HomeData(
     user: const SignedInUser(id: 1, fullName: 'Nisha Prakash'),
@@ -47,6 +50,7 @@ HomeData sample({
     onLeaveToday: onLeave,
     unreadNotifications: unread,
     announcement: announcement,
+    breakPolicy: breakPolicy,
   );
 }
 
@@ -59,6 +63,7 @@ Future<void> pumpHome(
   WidgetTester tester, {
   required Future<HomeData> Function() load,
   DateTime Function()? clock,
+  HomeApi? breakApi,
   Size logicalSize = const Size(402, 874),
 }) async {
   tester.view.physicalSize = logicalSize * 3;
@@ -81,6 +86,7 @@ Future<void> pumpHome(
     ProviderScope(
       overrides: [
         homeProvider.overrideWith((ref) => load()),
+        if (breakApi != null) homeApiProvider.overrideWithValue(breakApi),
         if (clock != null) homeClockProvider.overrideWithValue(clock),
       ],
       child: MaterialApp.router(
@@ -98,6 +104,28 @@ Future<void> pumpHome(
   );
   await tester.pump();
   await tester.pump(const Duration(milliseconds: 50));
+}
+
+BreakPolicy _policy(DateTime now, {int used = 0, DateTime? activeSince}) {
+  return BreakPolicy(
+    enabled: true,
+    canStart: activeSince == null && used < 10,
+    allowedSeconds: 10,
+    usedSeconds: used,
+    remainingSeconds: used >= 10 ? 0 : 10 - used,
+    activeSince: activeSince,
+    asOf: now,
+    receivedAt: now,
+  );
+}
+
+class _BreakApi extends HomeApi {
+  _BreakApi(this.change) : super(Dio());
+
+  final Future<BreakPolicy> Function(BreakAction) change;
+
+  @override
+  Future<BreakPolicy> changeBreak(BreakAction action) => change(action);
 }
 
 void main() {
@@ -139,6 +167,116 @@ void main() {
     await pumpHome(tester, load: () async => sample());
     expect(find.text('Clock out'), findsOneWidget);
   });
+
+  testWidgets('starts and ends a break with server-confirmed allowance', (
+    tester,
+  ) async {
+    var now = DateTime.utc(2026, 11, 26, 5);
+    var home = sample(breakPolicy: _policy(now));
+    final started = Completer<BreakPolicy>();
+    final actions = <BreakAction>[];
+    await pumpHome(
+      tester,
+      load: () async => home,
+      clock: () => now,
+      logicalSize: const Size(402, 1100),
+      breakApi: _BreakApi((action) async {
+        actions.add(action);
+        if (action == BreakAction.start) return started.future;
+        final result = _policy(now, used: 13);
+        home = sample(breakPolicy: result);
+        return result;
+      }),
+    );
+
+    expect(find.text('Allowed'), findsOneWidget);
+    expect(find.text('Used'), findsOneWidget);
+    expect(find.text('Remaining'), findsOneWidget);
+    expect(find.text('Total breaks 30m'), findsOneWidget);
+    expect(find.text('Clock out'), findsOneWidget);
+    await tester.tap(find.text('Start break'));
+    await tester.pump();
+    final saving = tester.widget<AppButton>(
+      find.widgetWithText(AppButton, 'Saving break…'),
+    );
+    expect(saving.onPressed, isNull);
+
+    now = now.add(const Duration(seconds: 1));
+    started.complete(_policy(now, activeSince: now));
+    await tester.pumpAndSettle();
+    expect(find.text('On break'), findsOneWidget);
+    expect(find.text('End break'), findsOneWidget);
+
+    now = now.add(const Duration(seconds: 13));
+    await tester.pump(const Duration(seconds: 1));
+    expect(find.text('00:00:13'), findsOneWidget);
+    expect(find.text('00:00:00'), findsOneWidget);
+    expect(find.text('03:12:40'), findsOneWidget);
+    expect(find.text('Clock out'), findsOneWidget);
+
+    await tester.tap(find.text('End break'));
+    await tester.pumpAndSettle();
+    expect(actions, [BreakAction.start, BreakAction.end]);
+    expect(find.text('On the clock'), findsOneWidget);
+    expect(find.text('You’ve used your break allowance.'), findsOneWidget);
+    final exhausted = tester.widget<AppButton>(
+      find.widgetWithText(AppButton, 'Start break'),
+    );
+    expect(exhausted.onPressed, isNull);
+  });
+
+  testWidgets('reconciles a rejected start with a break from the web', (
+    tester,
+  ) async {
+    final now = DateTime.utc(2026, 11, 26, 5);
+    var home = sample(breakPolicy: _policy(now));
+    await pumpHome(
+      tester,
+      load: () async => home,
+      clock: () => now,
+      logicalSize: const Size(402, 1100),
+      breakApi: _BreakApi((action) async {
+        home = sample(breakPolicy: _policy(now, activeSince: now));
+        throw const ApiUnknown('A break is already in progress.');
+      }),
+    );
+
+    await tester.tap(find.text('Start break'));
+    await tester.pumpAndSettle();
+    expect(find.text('A break is already in progress.'), findsOneWidget);
+    expect(find.text('End break'), findsOneWidget);
+  });
+
+  testWidgets(
+    'refreshes a break started on another device while Home is open',
+    (tester) async {
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+      final now = DateTime.utc(2026, 11, 26, 5);
+      var home = sample(breakPolicy: _policy(now));
+      await pumpHome(
+        tester,
+        load: () async => home,
+        clock: () => now,
+        logicalSize: const Size(402, 1100),
+      );
+      expect(find.text('Start break'), findsOneWidget);
+
+      home = sample(breakPolicy: _policy(now, activeSince: now));
+      await tester.pump(const Duration(seconds: 45));
+      await tester.pumpAndSettle();
+      expect(find.text('End break'), findsOneWidget);
+
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
+      home = sample(clockedIn: false, breakPolicy: _policy(now, used: 3));
+      await tester.pump(const Duration(seconds: 45));
+      expect(find.text('End break'), findsOneWidget);
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+      await tester.pumpAndSettle();
+      expect(find.text('Clock in'), findsOneWidget);
+      expect(find.text('End break'), findsNothing);
+      expect(find.text('Start break'), findsNothing);
+    },
+  );
 
   testWidgets('punch action remains reachable at large text sizes', (
     tester,

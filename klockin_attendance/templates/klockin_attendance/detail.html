@@ -25,7 +25,7 @@
     {% endif %}
     {% if can_view_evidence and punches %}
         <section class="kd-panel kd-detail">
-            <h2>Mobile punch evidence</h2>
+            <h2>Punch evidence</h2>
             {% for punch in punches %}
                 <article class="kd-audit">
                     <h3>{{ punch.get_punch_type_display }} · {{ punch.get_source_display }}</h3>

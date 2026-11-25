@@ -24,6 +24,21 @@ class HomeApi {
       throw failure is ApiFailure ? failure : const ApiUnknown();
     }
   }
+
+  Future<BreakPolicy> changeBreak(BreakAction action) async {
+    try {
+      final response = await _dio.post<dynamic>(
+        '/mobile/break/',
+        data: {'action': action.name},
+      );
+      final policy = BreakPolicy.fromJson(response.data);
+      if (policy == null) throw const ApiIncompatibleServer();
+      return policy;
+    } on DioException catch (e) {
+      final failure = e.error;
+      throw failure is ApiFailure ? failure : const ApiUnknown();
+    }
+  }
 }
 
 final homeApiProvider = Provider<HomeApi>(

@@ -13,12 +13,19 @@ Nominatim is mocked - the model asks it to reverse-geocode on save.
 """
 
 
+from tempfile import TemporaryDirectory
+from uuid import uuid4
+
 from django.core.exceptions import ValidationError
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import RequestFactory, TestCase
 from django.urls import reverse
 
+from attendance.models import AttendanceActivity, AttendanceGeneralSetting
 from geofencing.models import GeoFencing
 from klockin.testkit import make_company, make_employee, make_user
+from klockin_attendance.models import AttendancePunch
+from klockin_attendance.tests.test_ingestion import _selfie
 
 FENCE = {
     "latitude": "12.97",
@@ -244,66 +251,57 @@ class SetupPageTests(TestCase):
 
 
 class WebPunchWithAllCompaniesTests(TestCase):
-    """
-    With "all companies" selected the clock-in view has no company of its own. It used to skip
-    the geofence check completely, so an employee outside the fence could punch in.
-    """
+    """Confirmed browser punches use the employee's fence with All selected."""
 
     def setUp(self):
-        from attendance.models import AttendanceGeneralSetting
-
         self.acme = make_company("Acme")
-        # only a user who can see several companies is offered "all companies"; for anyone else the
-        # middleware puts their own company back in the session
+        # Otherwise middleware selects the user's company for them.
         self.user = make_user("fence-punch-user", is_superuser=True)
         make_employee(
             company=self.acme, email="fence-punch@test.horilla", user=self.user
         )
-        self.user = type(self.user).objects.get(pk=self.user.pk)
-        # the setting the view reads when "all companies" is selected
         AttendanceGeneralSetting.objects.create(company_id=None, enable_check_in=True)
         self.client.force_login(self.user)
-
-    def punch(self, latitude, longitude):
-        from django.contrib.messages import get_messages
-
         session = self.client.session
         session["selected_company"] = "all"
         session.save()
-        response = self.client.get(
-            reverse("clock-in"),
-            {"latitude": latitude, "longitude": longitude},
-            HTTP_HX_REQUEST="true",
+        selfie_dir = self.enterContext(TemporaryDirectory())
+        self.enterContext(self.settings(KLOCKIN_SELFIE_ROOT=selfie_dir))
+
+    def punch(self, **location):
+        return self.client.post(
+            reverse("klockin-web-punch"),
+            {
+                "action": "in",
+                "punch_uuid": str(uuid4()),
+                "selfie": SimpleUploadedFile("web.jpg", _selfie(), content_type="image/jpeg"),
+                **location,
+            },
         )
-        return [str(message) for message in get_messages(response.wsgi_request)]
 
-    def test_a_punch_from_outside_the_fence_is_refused_with_all_selected(
-        self
-    ):
-        from attendance.models import AttendanceActivity
-
+    def test_a_punch_from_outside_the_fence_is_refused_with_all_selected(self):
         make_fence(None, radius_in_meters=100)
-        messages = self.punch("40.0", "-74.0")
-        self.assertTrue(
-            any("outside the permitted work location" in m for m in messages), messages
-        )
-        self.assertEqual(AttendanceActivity.objects.count(), 0)
+        response = self.punch(latitude="40.0", longitude="-74.0")
+        self.assertEqual(response.status_code, 403, response.content)
+        self.assertEqual(response.json()["code"], "outside_geofence")
+        self.assertFalse(AttendanceActivity.objects.exists())
+        self.assertFalse(AttendancePunch.objects.exists())
 
     def test_a_punch_without_a_location_is_refused_with_all_selected(self):
         make_fence(None, radius_in_meters=100)
-        messages = self.punch("", "")
-        self.assertTrue(any("Could not verify your location" in m for m in messages))
+        response = self.punch()
+        self.assertEqual(response.status_code, 400, response.content)
+        self.assertIn("required", response.json()["detail"])
+        self.assertFalse(AttendanceActivity.objects.exists())
+        self.assertFalse(AttendancePunch.objects.exists())
 
     def test_a_punch_inside_the_fence_is_not_stopped_by_it(self):
-        from attendance.models import AttendanceActivity
-
         make_fence(None, radius_in_meters=100)
-        messages = self.punch("12.97", "77.59")
-        self.assertEqual(AttendanceActivity.objects.count(), 1, messages)
-        self.assertFalse(
-            any("permitted work location" in m for m in messages), messages
-        )
-        self.assertFalse(any("verify your location" in m for m in messages), messages)
+        response = self.punch(latitude="12.97", longitude="77.59")
+        self.assertEqual(response.status_code, 201, response.content)
+        self.assertTrue(response.json()["ok"])
+        self.assertEqual(AttendanceActivity.objects.count(), 1)
+        self.assertEqual(AttendancePunch.objects.get().source, AttendancePunch.Source.WEB)
 
 
 class AllowedWorkLocationsTests(TestCase):

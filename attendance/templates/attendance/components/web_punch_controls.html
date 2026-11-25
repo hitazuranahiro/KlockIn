@@ -1,0 +1,64 @@
+{% load i18n %}
+{% if request.user.employee_get %}
+    <details class="kp-break" data-break-panel data-url="{% url 'klockin-break' %}" hidden>
+        <summary>{% trans "Break" %} <span data-break-badge hidden></span></summary>
+        <div class="kp-break-body">
+            <h2>{% trans "Break time" %}</h2>
+            <p class="kp-break-active" data-break-active hidden>{% trans "On break" %} <strong data-break-elapsed></strong></p>
+            <dl class="kp-break-metrics">
+                <div><dt>{% trans "Allowance" %}</dt><dd data-break-allowed></dd></div>
+                <div><dt>{% trans "Used" %}</dt><dd data-break-used></dd></div>
+                <div><dt>{% trans "Remaining" %}</dt><dd data-break-remaining></dd></div>
+            </dl>
+            <p data-break-unavailable hidden>{% trans "Check in to start a break." %}</p>
+            <p data-break-exhausted hidden>{% trans "No break time remaining." %}</p>
+            <p class="kp-error" data-break-error role="alert" hidden></p>
+            <button type="button" class="kp-primary" data-break-action hidden>
+                <span data-break-start>{% trans "Start break" %}</span>
+                <span data-break-end hidden>{% trans "End break" %}</span>
+            </button>
+        </div>
+    </details>
+    <dialog class="kp-dialog" id="web-punch-preview" aria-labelledby="web-punch-title"
+            data-punch-url="{% url 'klockin-web-punch' %}" data-location-url="{% url 'klockin-web-punch-location' %}">
+        {% csrf_token %}
+        <header class="kp-dialog-header">
+            <h2 id="web-punch-title"></h2>
+            <button class="kp-close" type="button" data-punch-cancel aria-label="{% trans 'Close preview' %}">×</button>
+        </header>
+        <div class="kp-dialog-body">
+            <section aria-labelledby="web-punch-camera-title">
+                <h3 id="web-punch-camera-title">{% trans "Selfie" %}</h3>
+                <div class="kp-camera">
+                    <video data-punch-video muted autoplay playsinline hidden aria-label="{% trans 'Live selfie camera' %}"></video>
+                    <img data-punch-selfie hidden alt="{% trans 'Captured selfie' %}">
+                    <p class="kp-camera-status" data-camera-status role="status"></p>
+                </div>
+                <button type="button" class="kp-secondary" data-punch-camera disabled>
+                    <span data-camera-capture>{% trans "Take selfie" %}</span>
+                    <span data-camera-retake hidden>{% trans "Retake selfie" %}</span>
+                    <span data-camera-retry hidden>{% trans "Try camera again" %}</span>
+                </button>
+            </section>
+            <section class="kp-location" aria-labelledby="web-punch-location-title">
+                <div class="kp-location-heading">
+                    <i class="fa-solid fa-location-dot" aria-hidden="true"></i>
+                    <h3 id="web-punch-location-title">{% trans "Your location" %}</h3>
+                </div>
+                <p data-location-status role="status"></p>
+                <p class="kp-coordinates" data-location-coordinates hidden></p>
+                <a data-location-map hidden target="_blank" rel="noopener noreferrer">{% trans "Open map" %}</a>
+                <button type="button" class="kp-secondary" data-location-retry hidden>{% trans "Try location again" %}</button>
+            </section>
+            <p class="kp-error" data-punch-error role="alert" hidden></p>
+        </div>
+        <footer class="kp-dialog-footer">
+            <button type="button" class="kp-secondary" data-punch-cancel>{% trans "Cancel" %}</button>
+            <button type="button" class="kp-primary" data-punch-confirm disabled>
+                <span data-confirm-in>{% trans "Confirm check in" %}</span>
+                <span data-confirm-out hidden>{% trans "Confirm check out" %}</span>
+                <span data-confirm-progress hidden>{% trans "Saving…" %}</span>
+            </button>
+        </footer>
+    </dialog>
+{% endif %}

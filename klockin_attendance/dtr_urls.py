@@ -1,9 +1,12 @@
 from django.urls import path
 
 from . import audit, dtr
+from .web_punch import BrowserPunchLocationView, BrowserPunchView
 
 urlpatterns = [
     path("", dtr.attendance_workspace, name="klockin-attendance"),
+    path("web-punch/", BrowserPunchView.as_view(), name="klockin-web-punch"),
+    path("web-punch/location/", BrowserPunchLocationView.as_view(), name="klockin-web-punch-location"),
     path("export/", dtr.attendance_export, name="klockin-attendance-export"),
     path("day/<int:pk>/", dtr.attendance_detail, name="klockin-attendance-detail"),
     path(
