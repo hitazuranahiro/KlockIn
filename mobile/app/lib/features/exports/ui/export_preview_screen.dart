@@ -113,7 +113,9 @@ class _ExportPreviewScreenState extends ConsumerState<ExportPreviewScreen> {
         children: [
           AppTopBar(
             title: '${widget.target.type.label} preview',
-            onBack: () => Navigator.of(context).pop(),
+            onBack: ModalRoute.canPopOf(context) == true
+                ? () => Navigator.maybePop(context)
+                : null,
           ),
           Expanded(
             child: ref.watch(exportPdfToolsProvider).preview(widget.document),

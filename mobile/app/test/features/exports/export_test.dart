@@ -10,6 +10,7 @@ import 'package:klockin/features/exports/data/export_models.dart';
 import 'package:klockin/features/exports/ui/export_preview_screen.dart';
 import 'package:klockin/features/exports/ui/export_screen.dart';
 import 'package:klockin/shared/widgets/app_button.dart';
+import 'package:klockin/shared/widgets/app_top_bar.dart';
 
 final _pdf = Uint8List.fromList('%PDF-1.7\nfixture\n%%EOF\n'.codeUnits);
 
@@ -127,6 +128,82 @@ void main() {
     },
   );
 
+  testWidgets('a root PDF preview keeps its only route visible', (
+    tester,
+  ) async {
+    final tools = _PdfTools();
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [exportPdfToolsProvider.overrideWithValue(tools)],
+        child: MaterialApp(
+          home: ExportPreviewScreen(
+            target: ExportTarget.dtr(period: DateTime(2026, 11)),
+            document: ExportPdfDocument(bytes: _pdf, filename: 'DTR.pdf'),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final preview = find.byType(ExportPreviewScreen);
+    expect(find.text('DTR preview'), findsOneWidget);
+    expect(find.byType(CircleBackButton), findsNothing);
+    expect(await Navigator.maybePop(tester.element(preview)), isFalse);
+    await tester.pumpAndSettle();
+    expect(find.text('Rendered server PDF'), findsOneWidget);
+  });
+
+  testWidgets('DTR Back returns to export settings and then to Timekeeping', (
+    tester,
+  ) async {
+    final api = ExportApi(
+      _client(
+        (request) => Response<dynamic>(
+          requestOptions: request,
+          data: request.path == ExportApi.preferencesPath
+              ? _preferences()
+              : _pdf,
+        ),
+      ),
+    );
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          exportApiProvider.overrideWithValue(api),
+          exportPdfToolsProvider.overrideWithValue(_PdfTools()),
+        ],
+        child: MaterialApp(
+          home: Scaffold(
+            body: Builder(
+              builder: (context) => TextButton(
+                onPressed: () => openDocumentExport(
+                  context,
+                  ExportTarget.dtr(period: DateTime(2026, 11)),
+                ),
+                child: const Text('Timekeeping'),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.tap(find.text('Timekeeping'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Preview PDF'));
+    await tester.pumpAndSettle();
+    expect(find.text('DTR preview'), findsOneWidget);
+
+    await tester.tap(find.byType(CircleBackButton));
+    await tester.pumpAndSettle();
+    expect(find.text('DTR PDF'), findsOneWidget);
+    expect(find.text('Preview PDF'), findsOneWidget);
+
+    await tester.tap(find.byType(CircleBackButton));
+    await tester.pumpAndSettle();
+    expect(find.text('Timekeeping'), findsOneWidget);
+    expect(find.byType(ExportScreen), findsNothing);
+  });
+
   testWidgets('save a private note, then preview, download and share one PDF', (
     tester,
   ) async {
@@ -171,6 +248,7 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
+    expect(find.byType(CircleBackButton), findsNothing);
     await tester.tap(find.widgetWithText(ChoiceChip, 'Compact'));
     await tester.pumpAndSettle();
     await tester.enterText(find.byType(TextField), 'Private payroll note');

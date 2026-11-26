@@ -135,7 +135,9 @@ class _ExportScreenState extends ConsumerState<ExportScreen> {
         children: [
           AppTopBar(
             title: '${type.label} PDF',
-            onBack: () => Navigator.of(context).pop(),
+            onBack: ModalRoute.canPopOf(context) == true
+                ? () => Navigator.maybePop(context)
+                : null,
           ),
           Expanded(
             child: switch ((draft, loadError)) {
