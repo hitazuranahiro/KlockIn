@@ -46,8 +46,8 @@ body:has([class*="customize-panel--open"]) .quick-actions {
     bottom: calc(100% + 0.5rem);
     left: 0;
     inline-size: min(17rem, calc(100vw - 1.7rem));
-    max-block-size: calc(100vh - 5rem);
-    max-block-size: calc(100dvh - 5rem - env(safe-area-inset-bottom));
+    max-block-size: calc(100vh - var(--workspace-header-height, 3.75rem) - 5rem);
+    max-block-size: calc(100dvh - var(--workspace-header-height, 3.75rem) - 5rem - env(safe-area-inset-bottom));
     overflow-y: auto;
     overscroll-behavior: contain;
     padding: 0.35rem;
