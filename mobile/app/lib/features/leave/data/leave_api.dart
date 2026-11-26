@@ -10,27 +10,34 @@ class LeaveApi {
 
   final Dio _dio;
 
-  /// Balances, my requests and upcoming holidays.
-  ///
-  /// Three separate resources, so three requests, issued concurrently. There
-  /// is no aggregate for these and inventing one would be premature -- unlike
-  /// home, where eight fragments of a single view justified it.
+  /// Loads the employee's balances and requests alongside the holiday calendar.
   Future<LeaveOverview> fetchOverview() async {
     try {
-      final responses = await Future.wait([
-        _dio.get<dynamic>('/leave/available-leave/'),
-        _dio.get<dynamic>('/leave/user-request/'),
-        _dio.get<dynamic>('/leave/holiday/'),
+      final payloads = await Future.wait<Object?>([
+        _dio.get<dynamic>('/leave/available-leave/').then((r) => r.data),
+        _dio.get<dynamic>('/leave/user-request/').then((r) => r.data),
+        _holidayData(),
       ]);
 
       return LeaveOverview(
-        balances: _list(responses[0].data, LeaveBalance.fromJson),
-        requests: _list(responses[1].data, LeaveRequestSummary.fromJson),
-        holidays: _upcoming(_list(responses[2].data, Holiday.fromJson)),
+        balances: _list(payloads[0], LeaveBalance.fromJson),
+        requests: _list(payloads[1], LeaveRequestSummary.fromJson),
+        holidays: _upcoming(_list(payloads[2], Holiday.fromJson)),
       );
     } on DioException catch (e) {
       final failure = e.error;
       throw failure is ApiFailure ? failure : const ApiUnknown();
+    }
+  }
+
+  Future<Object?> _holidayData() async {
+    try {
+      final response = await _dio.get<dynamic>('/leave/holiday/');
+      return response.data;
+    } on DioException catch (error) {
+      // Some roles can manage their leave without viewing the holiday calendar.
+      if (error.response?.statusCode == 403) return null;
+      rethrow;
     }
   }
 

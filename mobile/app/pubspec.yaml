@@ -4,7 +4,7 @@ publish_to: 'none'
 
 # Android versionCode must increase for updates. Previous local APKs reached
 # build 18. Check the Play Console before the first store upload.
-version: 2.0.0+19
+version: 2.0.0+20
 
 environment:
   sdk: ^3.9.0
