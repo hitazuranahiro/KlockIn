@@ -48,6 +48,7 @@ function runWhenHtmxIdle(callback) {
 
 function clearQueryString() {
   runWhenHtmxIdle(function () {
+    // Export setup URLs carry the document mode, month, and layout on refresh.
     if (document.querySelector("[data-preserve-query-string]")) return;
     var url = window.location.href;
     var newUrl = url.split('?')[0];
