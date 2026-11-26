@@ -150,7 +150,11 @@ urlpatterns = [
     ),
     path("i18n/", include("django.conf.urls.i18n")),
     path("jsi18n/", JavaScriptCatalog.as_view(), name="javascript-catalog"),
-    path("exports/<str:kind>/<int:pk>/preferences/", save_document_preferences, name="save-export-preferences"),
+    path(
+        "documents/<str:kind>/<int:pk>/preferences/",
+        save_document_preferences,
+        name="save-export-preferences",
+    ),
     path("health/", health_check),
     path("ready/", readiness_check),
     path("metrics/", metrics),
