@@ -94,11 +94,9 @@
                         </td>
                         <td class="text">
                             <p class="company">{{ company }}</p>
-                            <p class="address">
-                                {{ company.address }}
-                                {{ company.country }} {{ company.state }}, {{ company.city }}
-                                {{ company.zip }}
-                            </p>
+                            {% if company_address %}
+                                <p class="address">{{ company_address }}</p>
+                            {% endif %}
                         </td>
                     </tr></table>
                 {% endif %}
@@ -112,7 +110,7 @@
                     <td>{{ employee }}</td>
                     <td class="gap"></td>
                     <td class="lbl">{% trans "Badge ID:" %}</td>
-                    <td>{{ employee.badge_id }}</td>
+                    <td>{{ employee.badge_id|default:"—" }}</td>
                 </tr>
                 <tr>
                     <td class="lbl">{% trans "Pay status:" %}</td>

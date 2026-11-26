@@ -16,7 +16,9 @@ from payroll.views.views import payslip_attachment_pdf
 class PayslipPDFLayoutsTests(TestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.company = make_company("Synthetic Payroll Company")
+        cls.company = make_company(
+            "Synthetic Payroll Company", address=None, city=None, state=None, zip=None, country=None,
+        )
         cls.user = make_user("pdf-layout-owner")
         employee = make_employee(
             company=cls.company, user=cls.user, email=cls.user.email,
@@ -69,16 +71,31 @@ class PayslipPDFLayoutsTests(TestCase):
                 response = self.client.get(self.pdf_url, {"template": preset} if preset else {})
                 text, sizes = self._read_pdf(response)
                 self.assertTrue(response.headers["Content-Disposition"].startswith("inline;"))
+                self.assertNotRegex(text, r"\bNone\b")
                 for width, height in sizes:
                     self.assertAlmostEqual(width, 842 if preset == "landscape" else 595, delta=1)
                     self.assertAlmostEqual(height, 595 if preset == "landscape" else 842, delta=1)
                 for value in (
                     "March 01, 2026 to March 31, 2026", "Paid", "30 of 31",
                     "Alma SyntheticWorker", "Synthetic Payroll Company", "Synthetic Bank", "QA-001",
+                    "Badge ID: —",
                     "Regular hours:", "160 h", "4 h", "Transport Allowance", "Pension Contribution",
                     "Sample Loan Deduction", "Income Tax", "15700.00", "14800.00",
                 ):
                     self.assertIn(value, text)
+
+    def test_company_letterhead_formats_a_partial_address(self):
+        self.company.address = " 12 Sample Avenue "
+        self.company.city = "Quezon City"
+        self.company.state = " "
+        self.company.country = "Philippines"
+        self.company.save(update_fields=["address", "city", "state", "country"])
+
+        address = "12 Sample Avenue, Quezon City, Philippines"
+        self.assertContains(self.client.get(self.html_url), address)
+        text, _ = self._read_pdf(self.client.get(self.pdf_url, {"template": "compact"}))
+        self.assertIn(address, text)
+        self.assertNotRegex(text, r"\bNone\b")
 
     def test_company_notes_toggles_and_preview_download_modes(self):
         save_export_preferences(self.user, {"payslip": {"note": "Optional reconciliation note."}})

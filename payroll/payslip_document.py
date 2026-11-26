@@ -16,6 +16,8 @@ def render_payslip_document(request, payslip, *, html=False, filename="payslip.p
     )
     employee = payslip.employee_id
     company = employee.get_company() or Company.objects.filter(hq=True).first()
+    address_parts = (company.address, company.city, company.state, company.zip, company.country) if company else ()
+    company_address = ", ".join(filter(None, ((value or "").strip() for value in address_parts)))
     snapshot = payslip.pay_head_data if isinstance(payslip.pay_head_data, dict) else {}
     start, end = payslip.start_date, payslip.end_date
     context = {
@@ -27,6 +29,7 @@ def render_payslip_document(request, payslip, *, html=False, filename="payslip.p
         **snapshot,
         "employee": employee,
         "company": company,
+        "company_address": company_address,
         "payslip": payslip,
         "month_start_name": start.strftime("%B %d, %Y"),
         "month_end_name": end.strftime("%B %d, %Y"),
