@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import '../../../core/api/api_failure.dart';
+import '../../../core/scope.dart';
 import '../../../core/theme/tokens.dart';
 import '../../../shared/widgets/app_card.dart';
 import '../../../shared/widgets/app_primitives.dart';
@@ -167,6 +168,18 @@ class _RequestsScreenState extends ConsumerState<RequestsScreen> {
                   style: AppText.appBarTitle.copyWith(fontSize: 18),
                 ),
                 const SizedBox(height: AppSpace.x16),
+                if (Modules.attendance) ...[
+                  _CreateOption(
+                    icon: Icons.edit_calendar_outlined,
+                    title: 'Missed punch',
+                    subtitle: 'Report a missing clock-in or clock-out',
+                    onTap: () {
+                      Navigator.of(sheetContext).pop();
+                      context.push('/requests/missed-punch');
+                    },
+                  ),
+                  const SizedBox(height: AppSpace.x10),
+                ],
                 _CreateOption(
                   icon: Icons.schedule_outlined,
                   title: 'Shift / work type',

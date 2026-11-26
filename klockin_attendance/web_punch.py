@@ -114,11 +114,22 @@ def prepare_browser_punch(request, employee, data, received_at):
     ).first()
     if not attendance or not activities.exists():
         return None
-    from .projection import activity_links_match, attendance_has_manual_history
+    from .projection import (
+        activity_links_match,
+        attendance_has_manual_history,
+        is_approved_missed_checkin,
+    )
 
     linked = AttendancePunch.objects.filter(attendance=attendance, activity__isnull=False)
     if not linked.filter(projectable=False).exists() and activity_links_match(
         {activity.pk: activity for activity in activities}, linked.filter(projectable=True, review__isnull=True)
+    ):
+        return None
+
+    if (
+        not checking_in
+        and activities.count() == 1
+        and is_approved_missed_checkin(attendance, active)
     ):
         return None
 

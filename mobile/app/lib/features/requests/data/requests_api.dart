@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/api/api_failure.dart';
 import '../../../core/auth/session.dart';
+import '../../attendance/data/missed_punch_models.dart';
 import 'request_models.dart';
 
 class RequestsApi {
@@ -10,7 +11,7 @@ class RequestsApi {
 
   final Dio _dio;
 
-  /// Four endpoints, one list.
+  /// Combine the request sources into one list.
   ///
   /// They are fetched concurrently, and a failure in any one does not take
   /// the screen down: a person with three shift requests should still see
@@ -30,6 +31,7 @@ class RequestsApi {
       _collect('/asset/asset-requests/', WorkRequest.fromAssetRequest),
       // Note the spelling: the server's route really is "reimbusement".
       _collect('/payroll/reimbusement/', WorkRequest.fromReimbursement),
+      _collect(missedPunchPath, WorkRequest.fromMissedPunch, paginate: true),
     ]);
 
     final merged = results.expand((r) => r).toList()
@@ -47,16 +49,24 @@ class RequestsApi {
 
   Future<List<WorkRequest>> _collect(
     String path,
-    WorkRequest? Function(Object?) parse,
-  ) async {
+    WorkRequest? Function(Object?) parse, {
+    bool paginate = false,
+  }) async {
+    final results = <WorkRequest>[];
     try {
-      final response = await _dio.get<dynamic>(path);
-      return _items(response.data, parse);
+      for (var page = 1; ; page++) {
+        final response = await _dio.get<dynamic>(
+          path,
+          queryParameters: paginate ? {'page': page, 'page_size': 100} : null,
+        );
+        final body = response.data;
+        results.addAll(_items(body, parse));
+        if (!paginate || body is! Map || body['next'] == null) break;
+      }
     } on DioException {
-      // Deliberately swallowed -- see fetchInbox. One unavailable request
-      // type must not blank the others.
-      return const [];
+      // Keep the available requests from other sources and earlier pages.
     }
+    return results;
   }
 
   // --- lookups for the create screens ---------------------------------

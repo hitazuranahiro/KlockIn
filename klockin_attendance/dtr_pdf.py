@@ -6,9 +6,8 @@ from reportlab.lib.pagesizes import A4
 from reportlab.pdfbase.pdfmetrics import stringWidth
 from reportlab.pdfgen import canvas
 
+from attendance.corrections import CORRECTION_PREFIX, MISSED_PUNCH_CORRECTION_PREFIX
 from attendance.methods.utils import strtime_seconds
-
-from .projection import CORRECTION_PREFIX
 
 
 MARGIN = 26
@@ -45,8 +44,12 @@ def _daily_clocks(row, activities, use_first_last):
             for clock, clock_date in (official_pair[:2], official_pair[2:])
         ]
 
+    # Approved missed punches update the activity too. A direct daily
+    # override takes precedence over the underlying activity clock times.
     if not activities or row.history.filter(
         history_change_reason__startswith=CORRECTION_PREFIX
+    ).exclude(
+        history_change_reason__startswith=MISSED_PUNCH_CORRECTION_PREFIX
     ).exists():
         pairs = [official_pair]
     else:

@@ -297,3 +297,80 @@
   .kd-metrics > div { padding-inline: 12px; }
   .kd-filters > div { flex-basis: min(135px, 100%); }
 }
+
+.kd-muted {
+  color: var(--kd-muted);
+  font-size: .85rem;
+}
+.kd-missed-link {
+  display: inline-block;
+  margin-top: 8px;
+}
+.kd-missed-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 420px) minmax(0, 1fr);
+  align-items: start;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+.kd-missed-form { margin-bottom: 0; }
+.kd-missed-form form,
+.kd-missed-field {
+  display: grid;
+  gap: 6px;
+}
+.kd-missed-form form { gap: 13px; }
+.kd-missed-form .kd-action { justify-self: start; }
+.kd-missed-field label,
+.kd-missed-form form p { margin: 0; }
+.kd-missed-field .helptext { color: var(--kd-muted); font-size: .8rem; }
+.kd-missed-times {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+.kd-missed-list { margin: 0; }
+.kd-missed-list > li {
+  border-top: 1px solid var(--kd-line);
+  padding: 14px 18px;
+}
+.kd-missed-item-heading,
+.kd-missed-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.kd-missed-review {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.kd-missed-review > div { min-width: 0; }
+.kd-missed-time-values {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px 16px;
+  margin: 6px 0;
+  font-size: .88rem;
+}
+.kd-missed-time-values > div { display: flex; gap: 5px; }
+.kd-missed-time-values dt { color: var(--kd-muted); }
+.kd-missed-time-values dd { margin: 0; font-weight: 650; }
+.kd-missed-reason { overflow-wrap: anywhere; white-space: pre-line; }
+.kd-missed-status {
+  border-radius: 6px;
+  padding: 2px 7px;
+  font-size: .79rem;
+  font-weight: 650;
+  color: #7a4806;
+  background: #fff2d2;
+}
+.kd-missed-status[data-status="approved"] { color: #176748; background: #e3f7ed; }
+.kd-missed-status[data-status="rejected"] { color: #9c292c; background: #fdebed; }
+.dark .kd-missed-form .errorlist { color: #ff9d9d; }
+@media (max-width: 760px) {
+  .kd-missed-grid { grid-template-columns: minmax(0, 1fr); }
+}

@@ -8,10 +8,12 @@ from django.test import RequestFactory, TestCase
 from django.urls import reverse
 from rest_framework.test import APIClient
 
+from attendance.corrections import decide_missed_punch_request, submit_missed_punch_request
 from attendance.models import Attendance, AttendanceActivity, AttendanceGeneralSetting
 from attendance.views.clock_in_out import clock_in, clock_out_attendance_and_activity
 from base.models import EmployeeShiftDay
 from geofencing.models import GeoFencing
+from klockin.testkit import make_employee, make_user
 
 from ..models import AttendancePunch, EmployeeDevice
 from .test_ingestion import IngestionFixture, _online, _payload, _selfie
@@ -70,6 +72,31 @@ class BrowserPunchTests(IngestionFixture, TestCase):
         self.assertEqual(event.activity.out_datetime, clock_out)
         self.assertEqual(Attendance.objects.get().attendance_worked_hour, "08:00")
         self.assertEqual(EmployeeDevice.objects.get().device_id, "installation-123")
+
+    def test_browser_checkout_closes_an_approved_missed_checkin(self):
+        manager = make_user("browser-missed-punch-manager")
+        approver = make_employee(company=self.company, email=manager.email, user=manager)
+        profile = self.employee.employee_work_info
+        profile.reporting_manager_id = approver
+        profile.save(update_fields=["reporting_manager_id"])
+        with patch("django.utils.timezone.now", return_value=self.clock + timedelta(hours=1)):
+            correction = submit_missed_punch_request(
+                self.user,
+                attendance_date=self.clock.date(),
+                time_in=self.clock.time(),
+                reason="Forgot to record my arrival",
+            )
+            decide_missed_punch_request(manager, correction.pk, approve=True)
+
+        clock_out = self.clock + timedelta(hours=8)
+        response = self.submit("out", clock=clock_out)
+        self.assertEqual(response.status_code, 201, response.content)
+        activity = AttendanceActivity.objects.get(employee_id=self.employee)
+        self.assertEqual(activity.in_datetime, self.clock)
+        self.assertEqual(activity.out_datetime, clock_out)
+        event = AttendancePunch.objects.get(employee=self.employee)
+        self.assertEqual(event.activity_id, activity.pk)
+        self.assertEqual(event.attendance.attendance_worked_hour, "08:00")
 
     def test_browser_replay_remains_idempotent_across_server_times(self):
         uuid = str(uuid4())

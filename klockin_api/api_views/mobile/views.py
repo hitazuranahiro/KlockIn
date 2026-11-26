@@ -22,6 +22,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from attendance.corrections import missed_punch_requests
 from attendance.methods.utils import strtime_seconds
 from attendance.models import Attendance, AttendanceActivity
 from employee.models import EmployeeWorkInformation
@@ -216,6 +217,7 @@ def _pending_approvals(request):
         .exclude(employee_id=employee)
         .count()
     )
+    by_kind["missed_punch"] = missed_punch_requests(request.user, approvals=True).filter(status="pending").count()
 
     for kind, model, perm in (
         ("shift", ShiftRequest, "base.view_shiftrequest"),

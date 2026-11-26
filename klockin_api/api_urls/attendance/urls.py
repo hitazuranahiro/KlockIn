@@ -4,10 +4,14 @@ klockin_api/urls/attendance/urls.py
 
 from django.urls import path
 
+from klockin_api.api_views.attendance.missed_punch import MissedPunchDecisionAPIView, MissedPunchRequestAPIView
 from klockin_api.api_views.attendance.permission_views import AttendancePermissionCheck
 from klockin_api.api_views.attendance.views import *
 
 urlpatterns = [
+    path("missed-punch/", MissedPunchRequestAPIView.as_view(), name="api-missed-punch"),
+    path("missed-punch/<int:pk>/approve/", MissedPunchDecisionAPIView.as_view(approve=True), name="api-missed-punch-approve"),
+    path("missed-punch/<int:pk>/reject/", MissedPunchDecisionAPIView.as_view(), name="api-missed-punch-reject"),
     path("clock-in/", AttendanceUpgradeAPIView.as_view(), name="api-check-in"),
     path("clock-out/", AttendanceUpgradeAPIView.as_view(), name="api-check-out"),
     path("attendance/", AttendanceView.as_view(), name="api-attendance-list"),

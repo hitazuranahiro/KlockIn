@@ -4,12 +4,14 @@
 /// reimbursements and attendance corrections together. Server-side these
 /// agree on almost nothing: shift and work-type requests carry two booleans
 /// (`approved`, `canceled`), reimbursements a `status` string, asset requests
-/// an `asset_request_status`, and attendance corrections a pair of
-/// `is_validate_request*` flags. Each also names its date differently.
+/// an `asset_request_status`, and missed-punch requests a decision status.
+/// Each also names its date differently.
 ///
 /// Normalising here rather than in the widgets means the screen has one shape
 /// to render and one place to look when a status reads wrong.
 library;
+
+import '../../attendance/data/missed_punch_models.dart';
 
 enum RequestKind {
   shift('Shift change'),
@@ -111,6 +113,23 @@ class WorkRequest {
       // status in this API.
       state: _fromStatusString(value['asset_request_status']),
       date: _date(value['asset_request_date']),
+    );
+  }
+
+  static WorkRequest? fromMissedPunch(Object? value) {
+    final request = MissedPunchRequest.fromJson(value);
+    if (request == null) return null;
+    return WorkRequest(
+      id: request.id,
+      kind: RequestKind.attendance,
+      title: request.title,
+      state: switch (request.status) {
+        MissedPunchStatus.pending => RequestState.pending,
+        MissedPunchStatus.approved => RequestState.approved,
+        MissedPunchStatus.rejected => RequestState.rejected,
+      },
+      date: request.attendanceDate,
+      detail: request.timeSummary,
     );
   }
 

@@ -1,0 +1,9 @@
+{% load i18n %}
+<dl class="kd-missed-time-values">
+    {% if item.time_in %}
+        <div><dt>{% trans "Check-in" %}</dt><dd>{{ item.time_in|time:"H:i" }}{% if item.clock_in_date and item.clock_in_date != item.attendance_date %} · {{ item.clock_in_date|date:"M j" }}{% endif %}</dd></div>
+    {% endif %}
+    {% if item.time_out %}
+        <div><dt>{% trans "Check-out" %}</dt><dd>{{ item.time_out|time:"H:i" }}{% if item.clock_out_date and item.clock_out_date != item.attendance_date %} · {{ item.clock_out_date|date:"M j" }}{% endif %}</dd></div>
+    {% endif %}
+</dl>

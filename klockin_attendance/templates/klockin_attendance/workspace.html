@@ -1,12 +1,15 @@
 {% extends "index.html" %}
-{% load static %}
+{% load i18n versioned_assets %}
 {% block content %}
-<link rel="stylesheet" href="{% static 'klockin_attendance/timekeeping.css' %}">
+<link rel="stylesheet" href="{% versioned_static 'klockin_attendance/timekeeping.css' %}">
 <main class="klockin-timekeeping">
     <header class="kd-header">
         <div>
             <h1>Timekeeping</h1>
             <p>Review attendance and export daily time records.</p>
+            {% if profile %}
+                <a class="kd-back kd-missed-link" href="{% url 'klockin-missed-punches' %}">{% trans "Missed punch requests" %} <span aria-hidden="true">→</span></a>
+            {% endif %}
         </div>
         {% if profile %}
             <form class="kd-export" action="{% url 'klockin-monthly-dtr' profile.pk %}" method="get">

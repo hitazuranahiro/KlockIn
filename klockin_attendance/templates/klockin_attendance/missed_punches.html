@@ -1,0 +1,107 @@
+{% extends "index.html" %}
+{% load i18n versioned_assets %}
+
+{% block content %}
+<link rel="stylesheet" href="{% versioned_static 'klockin_attendance/timekeeping.css' %}">
+<main class="klockin-timekeeping">
+    <a class="kd-back" href="{% url 'klockin-attendance' %}">← {% trans "Timekeeping" %}</a>
+    <header class="kd-header">
+        <div>
+            <h1>{% trans "Missed punch requests" %}</h1>
+            <p>{% trans "Your reporting manager must approve a missed punch before it appears in your attendance record." %}</p>
+        </div>
+        {% if team_page is not None %}
+            <a class="kd-action secondary" href="#team-requests">{% trans "Team approvals" %} ({{ team_page.paginator.count }})</a>
+        {% endif %}
+    </header>
+
+    <div class="kd-missed-grid">
+        <section class="kd-panel kd-detail kd-missed-form" aria-labelledby="new-request-heading">
+            <h2 id="new-request-heading">{% trans "File a missed punch" %}</h2>
+            {% if manager %}
+                <p class="kd-muted">{% blocktrans with manager_name=manager.get_full_name %}Your request goes to {{ manager_name }} for approval.{% endblocktrans %}</p>
+                <form method="post" aria-labelledby="new-request-heading">
+                    {% csrf_token %}
+                    {{ form.non_field_errors }}
+                    <div class="kd-missed-field">{{ form.attendance_date.as_field_group }}</div>
+                    <p class="kd-muted" id="missed-times-help">{% trans "Enter only the time you missed. Fill in both times if both punches are missing." %}</p>
+                    <div class="kd-missed-times" role="group" aria-describedby="missed-times-help">
+                        <div class="kd-missed-field">{{ form.time_in.as_field_group }}</div>
+                        <div class="kd-missed-field">{{ form.time_out.as_field_group }}</div>
+                    </div>
+                    <div class="kd-missed-field">{{ form.clock_out_date.as_field_group }}</div>
+                    <div class="kd-missed-field">{{ form.reason.as_field_group }}</div>
+                    <button class="kd-action" type="submit">{% trans "Send for approval" %}</button>
+                </form>
+            {% else %}
+                <p class="kd-muted">{% trans "Ask HR to assign you an active reporting manager so you can file a request." %}</p>
+            {% endif %}
+        </section>
+
+        <section class="kd-panel kd-results" id="my-requests" aria-labelledby="my-requests-heading">
+            <header class="kd-results-header"><h2 id="my-requests-heading">{% trans "My requests" %}</h2></header>
+            <ul class="kd-missed-list">
+                {% for item in own_page %}
+                    <li>
+                        <div class="kd-missed-item-heading">
+                            <strong>{{ item.attendance_date|date:"M j, Y" }}</strong>
+                            <span class="kd-missed-status" data-status="{{ item.status }}">{{ item.get_status_display }}</span>
+                        </div>
+                        {% include "klockin_attendance/missed_punch_times.html" %}
+                        <p class="kd-missed-reason">{{ item.reason }}</p>
+                        {% if item.decided_by %}
+                            <p class="kd-muted">{{ item.decided_by.get_full_name }} · {{ item.decided_at|date:"M j, Y" }}</p>
+                        {% endif %}
+                    </li>
+                {% empty %}
+                    <li class="kd-muted">{% trans "You haven’t filed any missed punch requests." %}</li>
+                {% endfor %}
+            </ul>
+            {% if own_page.paginator.num_pages > 1 %}
+                <nav class="kd-pagination" aria-label="{% trans 'My request pages' %}">
+                    {% if own_page.has_previous %}<a href="?mine={{ own_page.previous_page_number }}#my-requests">{% trans "Previous" %}</a>{% endif %}
+                    <span>{{ own_page.number }} / {{ own_page.paginator.num_pages }}</span>
+                    {% if own_page.has_next %}<a href="?mine={{ own_page.next_page_number }}#my-requests">{% trans "Next" %}</a>{% endif %}
+                </nav>
+            {% endif %}
+        </section>
+    </div>
+
+    {% if team_page is not None %}
+        <section class="kd-panel kd-results" id="team-requests" aria-labelledby="team-requests-heading">
+            <header class="kd-results-header">
+                <h2 id="team-requests-heading">{% trans "Team approvals" %}</h2>
+                <span>{% blocktrans count count=team_page.paginator.count %}{{ count }} pending request{% plural %}{{ count }} pending requests{% endblocktrans %}</span>
+            </header>
+            <ul class="kd-missed-list">
+                {% for item in team_page %}
+                    <li class="kd-missed-review">
+                        <div>
+                            <div class="kd-missed-item-heading">
+                                <strong>{{ item.employee.get_full_name }}</strong>
+                                <span class="kd-muted">{{ item.attendance_date|date:"M j, Y" }}</span>
+                            </div>
+                            {% include "klockin_attendance/missed_punch_times.html" %}
+                            <p class="kd-missed-reason">{{ item.reason }}</p>
+                        </div>
+                        <form method="post" action="{% url 'klockin-missed-punch-decision' item.pk %}" class="kd-missed-actions">
+                            {% csrf_token %}
+                            <button class="kd-action secondary" type="submit" name="decision" value="reject">{% trans "Reject" %}</button>
+                            <button class="kd-action" type="submit" name="decision" value="approve">{% trans "Approve" %}</button>
+                        </form>
+                    </li>
+                {% empty %}
+                    <li class="kd-muted">{% trans "No missed punch requests are awaiting your approval." %}</li>
+                {% endfor %}
+            </ul>
+            {% if team_page.paginator.num_pages > 1 %}
+                <nav class="kd-pagination" aria-label="{% trans 'Team approval pages' %}">
+                    {% if team_page.has_previous %}<a href="?team={{ team_page.previous_page_number }}#team-requests">{% trans "Previous" %}</a>{% endif %}
+                    <span>{{ team_page.number }} / {{ team_page.paginator.num_pages }}</span>
+                    {% if team_page.has_next %}<a href="?team={{ team_page.next_page_number }}#team-requests">{% trans "Next" %}</a>{% endif %}
+                </nav>
+            {% endif %}
+        </section>
+    {% endif %}
+</main>
+{% endblock %}

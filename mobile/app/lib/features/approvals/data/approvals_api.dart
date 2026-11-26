@@ -1,6 +1,6 @@
 /// Fetching and deciding a manager's approvals.
 ///
-/// Six endpoints, each with its own conventions. The ones that bite:
+/// The approval endpoints have different conventions:
 ///
 /// * Shift and attendance-request routes have no trailing slash; leave and
 ///   work-type routes do. Dio does not add or strip slashes, so the paths
@@ -20,6 +20,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/api/api_failure.dart';
 import '../../../core/auth/session.dart';
+import '../../attendance/data/missed_punch_models.dart';
 import 'approval_models.dart';
 
 typedef _Parse = ApprovalItem? Function(Object?);
@@ -61,6 +62,11 @@ class ApprovalsApi {
         '/attendance/attendance-request/',
         const {},
         (v) => ApprovalItem.fromAttendanceRequest(v, selfId: selfId),
+      ),
+      (
+        missedPunchPath,
+        const {'scope': 'approvals'},
+        (v) => ApprovalItem.fromMissedPunch(v, selfId: selfId),
       ),
       (
         '/base/shift-requests/',
@@ -166,6 +172,11 @@ class ApprovalsApi {
           );
         case ApprovalKind.attendance:
           await _send('PUT', '/attendance/attendance-request-approve/$id');
+        case ApprovalKind.missedPunch:
+          await _send(
+            'PUT',
+            '$missedPunchPath$id/${approve ? 'approve' : 'reject'}/',
+          );
         case ApprovalKind.shift:
           await (approve
               ? _send('PUT', '/base/shift-request-approve/$id')

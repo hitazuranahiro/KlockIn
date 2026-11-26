@@ -77,6 +77,7 @@
         <section class="ki-home-panel ki-home-quick" aria-labelledby="ki-quick-title">
             <header class="ki-home-section-heading"><h2 id="ki-quick-title">{% if team_attendance %}{% trans "Follow up" %}{% else %}{% trans "Quick access" %}{% endif %}</h2></header>
             <ul class="ki-home-links">
+                {% if employee %}<li><a href="{% url 'klockin-missed-punches' %}"><span>{% trans "Missed punch requests" %}</span><span aria-hidden="true">→</span></a></li>{% endif %}
                 {% if team_attendance %}
                 <li><a href="{{ timekeeping_url }}?start={{ week_start|date:'Y-m-d' }}&amp;end={{ today|date:'Y-m-d' }}&amp;report=pending"><span>{% trans "Punches awaiting review" %}<small>{% trans "Last 7 days" %}</small></span><span class="ki-home-count">{{ review_count }}</span><span aria-hidden="true">→</span></a></li>
                 <li><a href="{{ timekeeping_url }}?start={{ week_start|date:'Y-m-d' }}&amp;end={{ today|date:'Y-m-d' }}&amp;report=unsynced"><span>{% trans "Device sync reports" %}</span><span aria-hidden="true">→</span></a></li>

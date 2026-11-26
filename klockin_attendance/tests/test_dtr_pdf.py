@@ -5,9 +5,12 @@ from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
 
+from attendance.corrections import CORRECTION_PREFIX, MISSED_PUNCH_CORRECTION_PREFIX
 from attendance.models import Attendance, AttendanceActivity
 from base.models import EmployeeShiftDay
 from klockin.testkit import make_company, make_employee, make_user
+
+from ..dtr_pdf import _daily_clocks
 
 
 class MonthlyDTRPDFTests(TestCase):
@@ -92,3 +95,24 @@ class MonthlyDTRPDFTests(TestCase):
                         ):
                             self.assertIn(value, text)
                         self.assertEqual(text.split().count("40"), 2)
+
+
+    def test_missed_punch_approval_preserves_activity_times_in_dtr(self):
+        row = Attendance.objects.get(employee_id=self.employee, attendance_date=self.day)
+        activities = AttendanceActivity.objects.filter(
+            employee_id=self.employee, attendance_date=self.day
+        ).order_by("clock_in_date", "clock_in")
+        row._change_reason = MISSED_PUNCH_CORRECTION_PREFIX + "Missing overnight check-out"
+        row.save()
+
+        self.assertEqual(
+            _daily_clocks(row, activities, False), ["1:20 +1", "6:00 +1", "10:00", ""]
+        )
+
+        row.attendance_clock_in = time(22, 30)
+        row._change_reason = CORRECTION_PREFIX + "Supervisor corrected the daily total"
+        row.save()
+
+        self.assertEqual(
+            _daily_clocks(row, activities, False), ["", "6:00 +1", "10:30", ""]
+        )

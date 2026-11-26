@@ -21,6 +21,7 @@ import '../../features/approvals/ui/approvals_screen.dart';
 import '../../features/attendance/data/attendance_models.dart';
 import '../../features/attendance/ui/attendance_screen.dart';
 import '../../features/attendance/ui/correction_screen.dart';
+import '../../features/attendance/ui/missed_punch_screen.dart';
 import '../../features/employee/ui/directory_screen.dart';
 import '../../features/employee/ui/me_screen.dart';
 import '../../features/employee/ui/personal_info_screen.dart';
@@ -156,6 +157,10 @@ GoRouter buildRouter({
                     },
                   ),
                   GoRoute(
+                    path: 'missed-punch',
+                    builder: (context, state) => const MissedPunchScreen(),
+                  ),
+                  GoRoute(
                     path: 'leave',
                     builder: (context, state) => const LeaveScreen(),
                     routes: [
@@ -206,6 +211,10 @@ GoRouter buildRouter({
                             : const NotInThisBuildScreen(title: 'Payslip'),
                       ),
                     ],
+                  ),
+                  GoRoute(
+                    path: 'missed-punch',
+                    builder: (context, state) => const MissedPunchScreen(),
                   ),
                   GoRoute(
                     path: 'shift-request',

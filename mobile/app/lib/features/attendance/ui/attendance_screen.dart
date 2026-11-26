@@ -28,6 +28,17 @@ class AttendanceScreen extends ConsumerWidget {
             padding: const EdgeInsets.symmetric(horizontal: AppSpace.screen),
             child: _MonthPicker(overview: overview.value),
           ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: AppSpace.screen),
+            child: Align(
+              alignment: AlignmentDirectional.centerEnd,
+              child: TextButton.icon(
+                onPressed: () => context.push('/time/missed-punch'),
+                icon: const Icon(Icons.edit_calendar_outlined, size: 18),
+                label: const Text('Report missed punch'),
+              ),
+            ),
+          ),
           Expanded(
             child: RefreshIndicator(
               color: AppColors.brandStrong,

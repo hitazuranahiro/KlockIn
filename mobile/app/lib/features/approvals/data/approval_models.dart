@@ -1,8 +1,9 @@
-/// A manager's queue, normalised from six sources that agree on almost
+/// A manager's queue, normalised from sources that agree on almost
 /// nothing: leave and allocation requests carry a `status` string and a
 /// nested employee object, shift and work-type requests two booleans and
 /// flat name fields, attendance corrections are pending by virtue of being
-/// in their list at all, and reimbursements a lower-case `status`.
+/// in their list at all, while missed punches and reimbursements carry a
+/// lower-case `status`.
 ///
 /// Every source list also includes the caller's own requests (the server's
 /// subordinate filters add "self" on purpose), and a manager cannot approve
@@ -10,6 +11,8 @@
 library;
 
 import 'package:intl/intl.dart';
+
+import '../../attendance/data/missed_punch_models.dart';
 
 enum ApprovalFilter {
   all('All'),
@@ -28,6 +31,7 @@ enum ApprovalKind {
   leaveCancellation('Leave cancellation', ApprovalFilter.leave),
   allocation('Leave allocation', ApprovalFilter.leave),
   attendance('Attendance fix', ApprovalFilter.attendance),
+  missedPunch('Missed punch', ApprovalFilter.attendance),
   shift('Shift change', ApprovalFilter.workType),
   workType('Work type', ApprovalFilter.workType),
   reimbursement('Reimbursement', ApprovalFilter.expense);
@@ -171,6 +175,27 @@ class ApprovalItem {
       ].join(' · '),
       reason: _text(v['request_description']),
       canReject: false,
+    );
+  }
+
+  static ApprovalItem? fromMissedPunch(Object? value, {required int selfId}) {
+    final request = MissedPunchRequest.fromJson(value);
+    if (request == null ||
+        request.employeeId == selfId ||
+        request.status != MissedPunchStatus.pending) {
+      return null;
+    }
+    return ApprovalItem(
+      kind: ApprovalKind.missedPunch,
+      id: request.id,
+      employeeId: request.employeeId,
+      name: request.employeeName,
+      ask: [
+        _day.format(request.attendanceDate),
+        request.timeSummary,
+      ].join(' · '),
+      reason: request.reason,
+      submitted: request.requestedAt,
     );
   }
 
@@ -353,6 +378,7 @@ class PendingApprovals {
     'leave': ApprovalKind.leave,
     'allocation': ApprovalKind.allocation,
     'attendance': ApprovalKind.attendance,
+    'missed_punch': ApprovalKind.missedPunch,
     'shift': ApprovalKind.shift,
     'work_type': ApprovalKind.workType,
     'reimbursement': ApprovalKind.reimbursement,

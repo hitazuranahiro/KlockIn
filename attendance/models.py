@@ -1237,6 +1237,50 @@ class Attendance(HorillaModel):
                 )
 
 
+class AttendanceMissedPunchRequest(models.Model):
+    """The employee's requested punches, independent of official attendance."""
+
+    class Status(models.TextChoices):
+        PENDING = "pending", _("Pending")
+        APPROVED = "approved", _("Approved")
+        REJECTED = "rejected", _("Rejected")
+
+    employee = models.ForeignKey(
+        Employee, on_delete=models.PROTECT, related_name="missed_punch_requests"
+    )
+    attendance_date = models.DateField()
+    time_in = models.TimeField(null=True, blank=True)
+    time_out = models.TimeField(null=True, blank=True)
+    clock_in_date = models.DateField(null=True, blank=True)
+    clock_out_date = models.DateField(null=True, blank=True)
+    reason = models.CharField(max_length=200)
+    status = models.CharField(max_length=8, choices=Status.choices, default=Status.PENDING)
+    requested_at = models.DateTimeField(auto_now_add=True)
+    decided_at = models.DateTimeField(null=True, blank=True)
+    decided_by = models.ForeignKey(
+        Employee, null=True, blank=True, on_delete=models.PROTECT,
+        related_name="decided_missed_punch_requests",
+    )
+    attendance = models.ForeignKey(
+        Attendance, null=True, blank=True, on_delete=models.SET_NULL,
+        related_name="missed_punch_requests",
+    )
+
+    class Meta:
+        ordering = ("-requested_at", "-pk")
+        constraints = [
+            models.UniqueConstraint(
+                fields=("employee", "attendance_date"),
+                condition=Q(status="pending"),
+                name="attendance_one_pending_missed_punch",
+            ),
+            models.CheckConstraint(
+                condition=Q(time_in__isnull=False) | Q(time_out__isnull=False),
+                name="attendance_missed_punch_has_time",
+            ),
+        ]
+
+
 class AttendanceRequestFile(HorillaModel):
     file = models.FileField(upload_to=upload_path)
 

@@ -1,12 +1,13 @@
 """Apply mobile punches to their employee's dated attendance record."""
 
+from datetime import UTC, datetime, timedelta
 from zoneinfo import ZoneInfo
 
 from django.conf import settings
 
-from attendance.corrections import CORRECTION_PREFIX
+from attendance.corrections import CORRECTION_PREFIX, MISSED_PUNCH_CORRECTION_PREFIX
 from attendance.methods.utils import format_time
-from attendance.models import Attendance, AttendanceActivity
+from attendance.models import Attendance, AttendanceActivity, AttendanceMissedPunchRequest
 from attendance.views.views import attendance_validate
 from attendance.views.clock_in_out import early_out, late_come
 from base.models import EmployeeShiftDay
@@ -73,6 +74,75 @@ def _summary(activities, policy, zone, attendance):
     }
 
 
+def is_approved_missed_checkin(daily, activity):
+    """Recognize an untouched open interval created by a check-in-only approval."""
+    if (
+        activity is None
+        or daily.attendance_clock_out is not None
+        or daily.attendance_clock_out_date is not None
+        or daily.is_validate_request
+        or daily.is_validate_request_approved
+        or daily.attendance_overtime_approve
+        or activity.clock_out is not None
+        or activity.out_datetime is not None
+        or activity.in_datetime is None
+    ):
+        return False
+    clock_in = daily.attendance_clock_in
+    clock_in_date = daily.attendance_clock_in_date
+    if clock_in is None or clock_in_date is None:
+        return False
+    recorded = datetime.combine(clock_in_date, clock_in, tzinfo=ZoneInfo(settings.TIME_ZONE))
+    eligible = (
+        activity.clock_in == clock_in
+        and activity.clock_in_date == clock_in_date
+        and activity.in_datetime == recorded
+        and daily.missed_punch_requests.filter(
+            status=AttendanceMissedPunchRequest.Status.APPROVED,
+            time_in=clock_in,
+            clock_in_date=clock_in_date,
+            time_out__isnull=True,
+        ).exists()
+    )
+    if not eligible:
+        return False
+    correction = daily.history.filter(history_change_reason__startswith=CORRECTION_PREFIX).first()
+    return bool(
+        correction is not None
+        and correction.history_change_reason.startswith(MISSED_PUNCH_CORRECTION_PREFIX)
+        and not any(marker.penaltyaccounts_set.exists() for marker in daily.late_come_early_out.all())
+    )
+
+
+def _close_approved_missed_checkin(punch, daily, activity, zone, shift_start, shift_end):
+    duration = punch.punched_at.astimezone(UTC) - activity.in_datetime.astimezone(UTC)
+    if not timedelta(0) < duration <= timedelta(days=1):
+        return None
+    local_out = punch.punched_at.astimezone(zone)
+    activity.clock_out = local_out.time()
+    activity.clock_out_date = local_out.date()
+    activity.out_datetime = punch.punched_at
+    activity.save(update_fields=["clock_out", "clock_out_date", "out_datetime"])
+
+    close_attendance_break(daily, punch.punched_at)
+    summary = _summary([activity], getattr(daily, "mobile_policy", None), zone, daily)
+    daily.attendance_clock_out = activity.clock_out
+    daily.attendance_clock_out_date = activity.clock_out_date
+    daily.attendance_worked_hour = summary["attendance_worked_hour"]
+    daily.attendance_validated = attendance_validate(daily)
+    daily.save()
+    if shift_start != shift_end:
+        early_out(daily, shift_start, shift_end, daily.shift_id)
+
+    # The checkout is genuine evidence, but an official manual check-in is
+    # deliberately outside the evidence sequence used to rebuild later days.
+    punch.activity = activity
+    punch.attendance = daily
+    punch.projectable = False
+    punch.save(update_fields=["activity", "attendance", "projectable"])
+    return daily
+
+
 def project_punch(punch):
     """Reconcile the affected shift during the ingestion employee lock."""
     local_zone = ZoneInfo(settings.TIME_ZONE)
@@ -101,10 +171,6 @@ def project_punch(punch):
         review__isnull=True,
         projectable=True,
     ).order_by("punched_at", "punch_uuid")
-    pairs = list(_pairs(punches))
-    if not pairs:
-        return None
-
     daily = (
         Attendance.objects.select_for_update(of=("self",))
         .filter(employee_id=punch.employee, attendance_date=work_date)
@@ -116,6 +182,15 @@ def project_punch(punch):
             employee_id=punch.employee, attendance_date=work_date
         )
     }
+    if daily is not None and len(activities) == 1 and punch.punch_type == AttendancePunch.PunchType.CLOCK_OUT:
+        activity = next(iter(activities.values()))
+        if is_approved_missed_checkin(daily, activity):
+            return _close_approved_missed_checkin(punch, daily, activity, local_zone, shift_start, shift_end)
+
+    pairs = list(_pairs(punches))
+    if not pairs:
+        return None
+
     policy = None
     needs_snapshot = daily is None
     if daily is not None:

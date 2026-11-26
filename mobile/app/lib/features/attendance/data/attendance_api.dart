@@ -7,6 +7,7 @@ import '../../../core/api/error_interceptor.dart';
 import '../../../core/auth/session.dart';
 import 'attendance_models.dart';
 import 'correction_models.dart';
+import 'missed_punch_models.dart';
 
 class AttendanceApi {
   AttendanceApi(this._dio);
@@ -121,6 +122,17 @@ class AttendanceApi {
         );
       }
       throw failure is ApiFailure ? failure : const ApiUnknown();
+    }
+  }
+
+  Future<void> requestMissedPunch(MissedPunchDraft draft) async {
+    try {
+      await _dio.post<dynamic>(missedPunchPath, data: draft.toJson());
+    } on DioException catch (error) {
+      final failure = error.error;
+      throw failure is ApiFailure
+          ? failure
+          : ErrorInterceptor().mapFailure(error);
     }
   }
 
