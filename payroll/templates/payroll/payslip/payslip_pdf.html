@@ -7,7 +7,10 @@
         <style>
             @font-face { font-family: Inter; src: url("{% static 'payroll/fonts/inter/Inter-Regular.ttf' %}"); }
             @font-face { font-family: Inter; src: url("{% static 'payroll/fonts/inter/Inter-Bold.ttf' %}"); font-weight: bold; }
-            @page { size: a4 portrait; margin: 12mm; }
+            @page {
+                size: a4 {% if export_options.template == "landscape" %}landscape{% else %}portrait{% endif %};
+                margin: {% if export_options.template == "compact" %}9mm{% elif export_options.template == "landscape" %}11mm 15mm{% else %}12mm{% endif %};
+            }
             html { box-sizing: border-box; font-family: 'Inter', Arial, sans-serif; }
             *, *::before, *::after { box-sizing: inherit; }
             body { margin: 0; background: #fff; color: #111; font-size: 12.5px; }
@@ -26,7 +29,7 @@
             .letterhead h1 { margin: 0 0 6px; font-size: 20px; font-weight: 700; }
             .letterhead .company { font-size: 13px; font-weight: 700; }
             .letterhead .address { font-size: 11px; color: #444; margin-top: 2px; }
-            .letterhead .period { font-size: 11.5px; color: #444; margin-top: 6px; }
+            .letterhead .period { font-size: 11.5px; color: #444; margin-top: 8px; }
 
             /* ---- info grid ---- */
             .info { margin-bottom: 18px; }
@@ -54,50 +57,55 @@
             table.netpay tr.total td { font-weight: 700; font-size: 14px; border-top: 1px solid #999; padding-top: 8px; }
             .note { font-size: 11px; color: #444; margin-top: 8px; }
 
+            .doc--landscape .letterhead { margin-bottom: 13px; }
+            .doc--landscape .info .gap { width: 12%; }
+            .doc--landscape .info td { padding-right: 18px; }
+            .doc--landscape table.lines th { background: #eaf0f8; }
+            .doc--landscape table.lines .num { width: 25%; }
+
+            .doc--compact .letterhead { margin-bottom: 10px; }
+            .doc--compact .letterhead h1 { font-size: 17px; margin-bottom: 4px; }
+            .doc--compact .info, .doc--compact table.lines { margin-bottom: 9px; }
+            .doc--compact .info td, .doc--compact table.netpay td { padding: 2px 4px; font-size: 10.5px; }
+            .doc--compact h3.section { font-size: 11.5px; margin-bottom: 3px; }
+            .doc--compact table.lines th, .doc--compact table.lines td { padding: 3px 6px; font-size: 10.5px; }
+            .doc--compact .sub { font-size: 9px; }
+            .doc--compact table.netpay tr.total td { font-size: 12px; padding-top: 5px; }
+
             tr, td, th { page-break-inside: avoid; }
         </style>
     </head>
 
     <body id="printDiv">
-        <div class="doc" id="download_section">
+        <div class="doc doc--{{ export_options.template }}" id="download_section">
 
-            {% with resolved_company=employee.employee_work_info.company_id|default:company %}
-                <div class="letterhead">
-                    <h1>{% trans "Payslip" %}</h1>
+            <div class="letterhead">
+                <h1>{% trans "Payslip" %}</h1>
+                {% if export_options.show_company and company %}
                     <table class="letterhead-row"><tr>
                         <td class="logo-cell">
                             <img
                                 class="logo"
                                 width="36"
                                 height="36"
-                                src="{% if resolved_company.icon %}{{ resolved_company.icon.url }}{% else %}{% static 'images/ui/auth-logo.png' %}{% endif %}"
+                                src="{% if company.icon %}{{ company.icon.url }}{% else %}{% static 'images/ui/auth-logo.png' %}{% endif %}"
                                 alt="{% trans 'Company Logo' %}"
                             >
                         </td>
                         <td class="text">
-                            {% if employee.employee_work_info.company_id %}
-                                <p class="company">{{ employee.employee_work_info.company_id }}</p>
-                                <p class="address">
-                                    {{ employee.employee_work_info.company_id.address }}
-                                    {{ employee.employee_work_info.company_id.country }}
-                                    {{ employee.employee_work_info.company_id.state }},
-                                    {{ employee.employee_work_info.company_id.city }}
-                                    {{ employee.employee_work_info.company_id.zip }}
-                                </p>
-                            {% else %}
-                                <p class="company">{{ company }} - {% trans "Headquarters" %}</p>
-                                <p class="address">
-                                    {{ company.address }}
-                                    {{ company.country }} {{ company.state }}, {{ company.city }}
-                                    {{ company.zip }}
-                                </p>
-                            {% endif %}
-                            <p class="period">{{ month_start_name }} {% trans "to" %} {{ month_end_name }}</p>
+                            <p class="company">{{ company }}</p>
+                            <p class="address">
+                                {{ company.address }}
+                                {{ company.country }} {{ company.state }}, {{ company.city }}
+                                {{ company.zip }}
+                            </p>
                         </td>
                     </tr></table>
-                </div>
-            {% endwith %}
+                {% endif %}
+                <p class="period"><b>{% trans "Pay period" %}</b> {{ month_start_name }} {% trans "to" %} {{ month_end_name }}</p>
+            </div>
 
+            <h3 class="section">{% trans "Employee and pay details" %}</h3>
             <table class="info">
                 <tr>
                     <td class="lbl">{% trans "Employee name:" %}</td>
@@ -105,6 +113,10 @@
                     <td class="gap"></td>
                     <td class="lbl">{% trans "Badge ID:" %}</td>
                     <td>{{ employee.badge_id }}</td>
+                </tr>
+                <tr>
+                    <td class="lbl">{% trans "Pay status:" %}</td>
+                    <td colspan="4">{{ payslip.get_status_display|default:"—" }}</td>
                 </tr>
                 <tr>
                     <td class="lbl">{% trans "Department:" %}</td>
@@ -139,17 +151,19 @@
                         </td>
                     </tr>
                 {% endif %}
-                <tr>
-                    <td class="lbl">{% trans "Bank account:" %}</td>
-                    <td colspan="4">
-                        {{ employee.employee_bank_details.bank_name|default:"" }}
-                        {% if employee.employee_bank_details.account_number %}&mdash; {{ employee.employee_bank_details.account_number }}{% else %}—{% endif %}
-                    </td>
-                </tr>
+                {% if export_options.template != "compact" %}
+                    <tr>
+                        <td class="lbl">{% trans "Bank account:" %}</td>
+                        <td colspan="4">
+                            {{ employee.employee_bank_details.bank_name|default:"" }}
+                            {% if employee.employee_bank_details.account_number %}&mdash; {{ employee.employee_bank_details.account_number }}{% else %}—{% endif %}
+                        </td>
+                    </tr>
+                {% endif %}
             </table>
 
-            <h3 class="section">{% trans "Entitlements" %}</h3>
-            <table class="lines">
+            <h3 class="section">{% trans "Earnings and allowances" %}</h3>
+            <table class="lines" repeat="1">
                 <tr>
                     <th>{% trans "Description" %}</th>
                     <th class="num">{% trans "Amount" %}</th>
@@ -170,8 +184,8 @@
                 </tr>
             </table>
 
-            <h3 class="section">{% trans "Deductions" %}</h3>
-            <table class="lines">
+            <h3 class="section">{% trans "Deductions and taxes" %}</h3>
+            <table class="lines" repeat="1">
                 <tr>
                     <th>{% trans "Description" %}</th>
                     <th class="num">{% trans "Amount" %}</th>
@@ -256,7 +270,7 @@
 
             {% if custom_leave_breakdown %}
                 <h3 class="section">{% trans "Partially paid leave" %}</h3>
-                <table class="lines">
+                <table class="lines" repeat="1">
                     <tr>
                         <th>{% trans "Leave type" %}</th>
                         <th>{% trans "Days" %}</th>
@@ -274,7 +288,7 @@
                 </table>
             {% endif %}
 
-            <h3 class="section">{% trans "Net pay" %}</h3>
+            <h3 class="section">{% trans "Net pay and payment details" %}</h3>
             <table class="netpay">
                 <tr>
                     <td class="lbl">{% trans "Bank name:" %}</td>
@@ -294,6 +308,10 @@
                     <b>{{ uncovered_deduction|floatformat:2|currency_symbol_position }} {% trans "could not be deducted." %}</b>
                     {% blocktrans %}What was owed came to more than the pay, so deductions were capped at gross and this much is still outstanding.{% endblocktrans %}
                 </p>
+            {% endif %}
+            {% if export_options.show_notes and export_options.note %}
+                <h3 class="section">{% trans "Notes" %}</h3>
+                <p class="note">{{ export_options.note|linebreaksbr }}</p>
             {% endif %}
         </div>
     </body>

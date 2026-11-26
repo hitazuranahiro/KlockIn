@@ -14,7 +14,7 @@ from base.backends import ConfiguredEmailBackend
 from employee.models import EmployeeWorkInformation
 from klockin.klockin_middlewares import get_selected_company, set_selected_company
 from payroll.models.models import Payslip
-from payroll.views.views import payslip_pdf
+from payroll.views.views import payslip_attachment_pdf as payslip_pdf
 
 logger = logging.getLogger(__name__)
 

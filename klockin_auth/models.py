@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.utils.translation import gettext_lazy as _
@@ -46,3 +47,10 @@ class AuthUserUserPermissions(models.Model):
     class Meta:
         db_table = "auth_user_user_permissions"
         managed = False
+
+
+class DocumentExportPreference(models.Model):
+    user = models.OneToOneField(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="document_export_preference"
+    )
+    preferences = models.JSONField(default=dict, blank=True)

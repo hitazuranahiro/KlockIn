@@ -9,6 +9,8 @@ import '../../../shared/widgets/app_card.dart';
 import '../../../shared/widgets/app_top_bar.dart';
 import '../../../shared/widgets/error_state_card.dart';
 import '../../../shared/widgets/pressable.dart';
+import '../../exports/data/export_models.dart';
+import '../../exports/ui/export_screen.dart';
 import '../data/attendance_api.dart';
 import '../data/attendance_models.dart';
 
@@ -32,10 +34,26 @@ class AttendanceScreen extends ConsumerWidget {
             padding: const EdgeInsets.symmetric(horizontal: AppSpace.screen),
             child: Align(
               alignment: AlignmentDirectional.centerEnd,
-              child: TextButton.icon(
-                onPressed: () => context.push('/time/missed-punch'),
-                icon: const Icon(Icons.edit_calendar_outlined, size: 18),
-                label: const Text('Report missed punch'),
+              child: Wrap(
+                alignment: WrapAlignment.end,
+                spacing: AppSpace.x4,
+                children: [
+                  TextButton.icon(
+                    onPressed: () => context.push('/time/missed-punch'),
+                    icon: const Icon(Icons.edit_calendar_outlined, size: 18),
+                    label: const Text('Report missed punch'),
+                  ),
+                  TextButton.icon(
+                    onPressed: () => openDocumentExport(
+                      context,
+                      ExportTarget.dtr(
+                        period: ref.read(attendanceMonthProvider),
+                      ),
+                    ),
+                    icon: const Icon(Icons.picture_as_pdf_outlined, size: 18),
+                    label: const Text('Export DTR'),
+                  ),
+                ],
               ),
             ),
           ),

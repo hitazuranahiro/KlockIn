@@ -64,9 +64,9 @@ working side by side, the CTC break down across the full width beneath them. On 
                     <img src="{% static 'klockin_theme/assets/img/icons/email1.svg' %}" alt="{% trans Mail %}"
                         width="15" class="mt-[-1px]">
                 </a>
-                <a title="{% trans 'Download' %}" href="{% url 'payslip-pdf' instance.id %}" type="button"
+                <a title="{% trans 'Preview and download payslip' %}" href="{% url 'payslip-pdf' instance.id %}?configure=1"
                     class="w-8 h-8 justify-center bg-brand-600 text-white rounded-md text-xs flex items-center gap-2 hover:bg-brand-800 transition duration-300 {% if payslip.sent_to_employee %}sent-to-employee{% endif %}">
-                    <img src="{% static 'klockin_theme/assets/img/icons/download.svg' %}" alt="{% trans 'Download' %}"
+                    <img src="{% static 'klockin_theme/assets/img/icons/download.svg' %}" alt="{% trans 'Preview and download payslip' %}"
                         width="18" class="filter brightness-0 invert">
                 </a>
                 {% if perms.payroll.change_payslip %}

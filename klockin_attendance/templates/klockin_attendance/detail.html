@@ -6,7 +6,7 @@
     <a class="kd-back" href="{% url 'klockin-attendance' %}">← Timekeeping</a>
     <header class="kd-header">
         <div><h1>{{ attendance.employee_id.get_full_name }}</h1><p>{{ attendance.attendance_date|date:"F j, Y" }}</p></div>
-        <a class="kd-action secondary" href="{% url 'klockin-monthly-dtr' attendance.employee_id_id %}?month={{ attendance.attendance_date|date:'Y-m' }}">Download monthly DTR</a>
+        <a class="kd-action secondary" href="{% url 'klockin-monthly-dtr' attendance.employee_id_id %}?month={{ attendance.attendance_date|date:'Y-m' }}&amp;configure=1">Preview monthly DTR</a>
     </header>
     <dl class="kd-metrics kd-metrics-compact" aria-label="Daily attendance">
         <div><dt>First in</dt><dd>{{ attendance.attendance_clock_in|time:"H:i"|default:"—" }}</dd></div>

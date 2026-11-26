@@ -13,10 +13,10 @@ from urllib.parse import parse_qs
 import pandas as pd
 from django.conf import settings as pay_settings
 from django.contrib import messages
+from django.core.exceptions import ValidationError
 from django.db.models import ProtectedError, Q
-from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
+from django.http import HttpResponse, HttpResponseBadRequest, HttpResponseRedirect, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
-from django.template.loader import render_to_string
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
@@ -29,14 +29,12 @@ from base.methods import (
     export_data,
     filter_own_and_subordinate_recordes,
     generate_colors,
-    generate_pdf,
     get_key_instances,
     get_session_company,
     sortby,
 )
 from base.models import Company
 from employee.models import Employee, EmployeeWorkInformation
-from klockin.pdf import document_pdf
 from klockin.decorators import (
     hx_request_required,
     login_required,
@@ -66,6 +64,7 @@ from payroll.models.models import (
 )
 from payroll.models.payroll_batch import PayrollBatch
 from payroll.models.tax_models import PayrollSettings
+from payroll.payslip_document import render_payslip_document
 
 # Create your views here.
 
@@ -554,92 +553,36 @@ def update_payslip_status_no_id(request):
     return JsonResponse(message)
 
 
-@login_required
-def view_payslip_pdf(request, payslip_id):
-
+def _serve_payslip_document(request, payslip_id, *, html=False, use_preferences=True):
     from .component_views import filter_payslip
 
-    if Payslip.objects.filter(id=payslip_id).exists():
-        payslip = Payslip.objects.get(id=payslip_id)
-        company = Company.objects.filter(hq=True).first()
-        if (
-            request.user.has_perm("payroll.view_payslip")
-            or payslip.employee_id.employee_user_id == request.user
-        ):
-            user = request.user
-            employee = user.employee_get
-
-            # Taking the company_name of the user
-            info = EmployeeWorkInformation.objects.filter(employee_id=employee)
-            if info.exists():
-                for data in info:
-                    employee_company = data.company_id
-                company_name = Company.objects.filter(company=employee_company)
-                emp_company = company_name.first()
-
-                # Access the date_format attribute directly
-                date_format = (
-                    emp_company.date_format
-                    if emp_company and emp_company.date_format
-                    else "MMM. D, YYYY"
-                )
-            else:
-                date_format = "MMM. D, YYYY"
-
-            data = payslip.pay_head_data
-            start_date_str = data["start_date"]
-            end_date_str = data["end_date"]
-
-            # Convert the string to a datetime.date object
-            start_date = datetime.strptime(start_date_str, "%Y-%m-%d").date()
-            end_date = datetime.strptime(end_date_str, "%Y-%m-%d").date()
-
-            month_start_name = start_date.strftime("%B %d, %Y")
-            month_end_name = end_date.strftime("%B %d, %Y")
-            # Formatted date for each format
-            for format_name, format_string in pay_settings.KLOCKIN_DATE_FORMATS.items():
-                if format_name == date_format:
-                    formatted_start_date = start_date.strftime(format_string)
-
-            for format_name, format_string in pay_settings.KLOCKIN_DATE_FORMATS.items():
-                if format_name == date_format:
-                    formatted_end_date = end_date.strftime(format_string)
-            data["month_start_name"] = month_start_name
-            data["month_end_name"] = month_end_name
-            data["formatted_start_date"] = formatted_start_date
-            data["formatted_end_date"] = formatted_end_date
-            # Every day in the period, week offs and holidays included --
-            # "working_days" excludes those, which reads as though paid days
-            # are being counted against a smaller month than the one shown.
-            data["total_calendar_days"] = (end_date - start_date).days + 1
-            data["employee"] = payslip.employee_id
-            data["payslip"] = payslip
-            data["json_data"] = data.copy()
-            data["json_data"]["employee"] = payslip.employee_id.id
-            data["json_data"]["payslip"] = payslip.id
-            data["instance"] = payslip
-            data["currency"] = PayrollSettings.currency_for_selected_company()
-            data["all_deductions"] = []
-            for deduction_list in [
-                data["basic_pay_deductions"],
-                data["gross_pay_deductions"],
-                data["pretax_deductions"],
-                data["post_tax_deductions"],
-                data["tax_deductions"],
-                data["net_deductions"],
-            ]:
-                data["all_deductions"].extend(deduction_list)
-
-            data["all_allowances"] = data["allowances"].copy()
-            equalize_lists_length(data["allowances"], data["all_deductions"])
-            data["zipped_data"] = zip(data["allowances"], data["all_deductions"])
-            data["host"] = request.get_host()
-            data["protocol"] = "https" if request.is_secure() else "http"
-            data["company"] = company
-
-            return render(request, "payroll/payslip/payslip_pdf.html", context=data)
+    payslip = Payslip.objects.filter(pk=payslip_id).first()
+    if payslip is None:
+        return render(request, "405.html")
+    if not (
+        request.user.has_perm("payroll.view_payslip")
+        or payslip.employee_id.employee_user_id_id == request.user.pk
+    ):
         return redirect(filter_payslip)
-    return render(request, "405.html")
+
+    if use_preferences and not html and request.method == "GET" and request.GET.get("configure") == "1":
+        from klockin.export_views import render_export_setup
+
+        return render_export_setup(request, "payslip", payslip.pk, title=_("Payslip"))
+
+    try:
+        pdf_requested = request.GET.get("preview") == "1" or request.GET.get("download") == "1"
+        return render_payslip_document(
+            request, payslip, html=html and not pdf_requested, use_preferences=use_preferences,
+        )
+    except ValidationError as error:
+        return HttpResponseBadRequest(error.messages[0], content_type="text/plain; charset=utf-8")
+
+
+@login_required
+def view_payslip_pdf(request, payslip_id):
+    """Open the existing HTML preview or its inline PDF equivalent."""
+    return _serve_payslip_document(request, payslip_id, html=True)
 
 
 @login_required
@@ -1486,134 +1429,16 @@ def contract_bulk_delete(request):
     return JsonResponse({"message": "Success"})
 
 
-def equalize_lists_length(allowances, deductions):
-    """
-    Equalize the lengths of two lists by appending empty dictionaries to the shorter list.
-
-    Args:
-    deductions (list): List of dictionaries representing deductions.
-    allowances (list): List of dictionaries representing allowances.
-
-    Returns:
-    tuple: Tuple containing two lists with equal lengths.
-    """
-    num_deductions = len(deductions)
-    num_allowances = len(allowances)
-
-    while num_deductions < num_allowances:
-        deductions.append({"title": "", "amount": ""})
-        num_deductions += 1
-
-    while num_allowances < num_deductions:
-        allowances.append({"title": "", "amount": ""})
-        num_allowances += 1
-
-    return deductions, allowances
-
-
-def generate_payslip_pdf(template_path, context, html=False, filename="payslip.pdf"):
-    markup = render_to_string(template_path, {**context, "pdf_output": not html})
-    if html:
-        return HttpResponse(markup, content_type="text/html")
-    return document_pdf(markup, filename, host=context.get("host"))
+@login_required
+def payslip_pdf(request, id):
+    """Export the requested payslip with the caller's document options."""
+    return _serve_payslip_document(request, id)
 
 
 @login_required
-def payslip_pdf(request, id):
-    """
-    Generate the payslip as a PDF and return it in an HttpResponse.
-
-    Args:
-        request (HttpRequest): The request object.
-        id (int): The ID of the payslip to generate.
-
-    Returns:
-        HttpResponse: A response containing the PDF content.
-    """
-
-    from .component_views import filter_payslip
-
-    if Payslip.objects.filter(id=id).exists():
-        payslip = Payslip.objects.get(id=id)
-        company = Company.objects.filter(hq=True).first()
-        if (
-            request.user.has_perm("payroll.view_payslip")
-            or payslip.employee_id.employee_user_id == request.user
-        ):
-            user = request.user
-            employee = user.employee_get
-
-            # Taking the company_name of the user
-            info = EmployeeWorkInformation.objects.filter(employee_id=employee)
-            date_format = "MMM. D, YYYY"
-            if info.exists():
-                for data in info:
-                    employee_company = data.company_id
-                company_name = Company.objects.filter(company=employee_company)
-                emp_company = company_name.first()
-
-                # Access the date_format attribute directly
-                date_format = (
-                    emp_company.date_format
-                    if emp_company and emp_company.date_format
-                    else "MMM. D, YYYY"
-                )
-
-            data = payslip.pay_head_data
-            start_date_str = data["start_date"]
-            end_date_str = data["end_date"]
-
-            # Convert the string to a datetime.date object
-            start_date = datetime.strptime(start_date_str, "%Y-%m-%d").date()
-            end_date = datetime.strptime(end_date_str, "%Y-%m-%d").date()
-
-            # Format the start and end dates
-            for format_name, format_string in pay_settings.KLOCKIN_DATE_FORMATS.items():
-                if format_name == date_format:
-                    formatted_start_date = start_date.strftime(format_string)
-                    formatted_end_date = end_date.strftime(format_string)
-
-            # Prepare context for the template
-            data.update(
-                {
-                    "month_start_name": start_date.strftime("%B %d, %Y"),
-                    "month_end_name": end_date.strftime("%B %d, %Y"),
-                    "formatted_start_date": formatted_start_date,
-                    "formatted_end_date": formatted_end_date,
-                    # Every day in the period, week offs and holidays
-                    # included -- "working_days" excludes those.
-                    "total_calendar_days": (end_date - start_date).days + 1,
-                    "employee": payslip.employee_id,
-                    "payslip": payslip,
-                    "json_data": data.copy(),
-                    "currency": PayrollSettings.currency_for_selected_company(),
-                    "all_deductions": [],
-                    "all_allowances": data["allowances"].copy(),
-                    "host": request.get_host(),
-                    "protocol": "https" if request.is_secure() else "http",
-                    "company": company,
-                }
-            )
-
-            # Merge deductions and allowances for display
-            for deduction_list in [
-                data["basic_pay_deductions"],
-                data["gross_pay_deductions"],
-                data["pretax_deductions"],
-                data["post_tax_deductions"],
-                data["tax_deductions"],
-                data["net_deductions"],
-            ]:
-                data["all_deductions"].extend(deduction_list)
-
-            equalize_lists_length(data["allowances"], data["all_deductions"])
-            data["zipped_data"] = zip(data["allowances"], data["all_deductions"])
-            data["request"] = request
-            template_path = "payroll/payslip/payslip_pdf.html"
-
-            return generate_payslip_pdf(template_path, context=data, html=False)
-        return redirect(filter_payslip)
-    return render(request, "405.html")
+def payslip_attachment_pdf(request, id):
+    """Build the issued copy used for a payroll email attachment."""
+    return _serve_payslip_document(request, id, use_preferences=False)
 
 
 @login_required

@@ -8,6 +8,8 @@ import '../../../core/theme/tokens.dart';
 import '../../../shared/widgets/app_card.dart';
 import '../../../shared/widgets/app_primitives.dart';
 import '../../../shared/widgets/error_state_card.dart';
+import '../../exports/data/export_models.dart';
+import '../../exports/ui/export_screen.dart';
 import '../data/payroll_api.dart';
 import '../data/payroll_models.dart';
 import '../../../shared/widgets/app_top_bar.dart';
@@ -97,6 +99,16 @@ class _DetailBody extends StatelessWidget {
                 ),
               ],
             ],
+          ),
+        ),
+
+        const SizedBox(height: AppSpace.x12),
+        OutlinedButton.icon(
+          icon: const Icon(Icons.picture_as_pdf_outlined),
+          label: const Text('Export payslip PDF'),
+          onPressed: () => openDocumentExport(
+            context,
+            ExportTarget.payslip(id: summary.id, period: summary.endDate),
           ),
         ),
 

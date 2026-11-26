@@ -1,5 +1,7 @@
 {% load i18n %}
-<form action="{% url 'payslip-pdf' instance.id %}" method='post' class="w-100">
-    {% csrf_token %}
-    <button type='submit' title="{% trans 'Download' %}" class="oh-btn oh-btn--light-bkg w-100"> <ion-icon name="download"></ion-icon></button>
-  </form>
+<a href="{% url 'payslip-pdf' instance.id %}?configure=1"
+   class="oh-btn oh-btn--light-bkg w-100"
+   title="{% trans 'Preview and download payslip' %}"
+   aria-label="{% trans 'Preview and download payslip' %}">
+    <ion-icon name="download"></ion-icon>
+</a>

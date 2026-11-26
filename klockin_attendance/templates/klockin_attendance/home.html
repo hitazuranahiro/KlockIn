@@ -85,7 +85,7 @@
                 {% if employee %}<li><a href="{% url 'ess-dashboard' %}"><span>{% trans "My workspace" %}</span><span aria-hidden="true">→</span></a></li>{% endif %}
                 {% else %}
                 {% if employee %}
-                <li><a href="{% url 'klockin-monthly-dtr' employee.pk %}?month={{ today|date:'Y-m' }}"><span>{% trans "Download this month’s DTR" %}</span><span aria-hidden="true">↓</span></a></li>
+                <li><a href="{% url 'klockin-monthly-dtr' employee.pk %}?month={{ today|date:'Y-m' }}&amp;configure=1"><span>{% trans "Preview this month’s DTR" %}</span><span aria-hidden="true">→</span></a></li>
                 <li><a href="{% url 'employee-profile' %}"><span>{% trans "My profile" %}</span><span aria-hidden="true">→</span></a></li>
                 {% endif %}
                 {% if can_switch_to_main_dashboard %}<li><a href="{% url 'dashboard' %}"><span>{% trans "Team overview" %}</span><span aria-hidden="true">→</span></a></li>{% endif %}

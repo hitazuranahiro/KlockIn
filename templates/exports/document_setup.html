@@ -1,0 +1,78 @@
+{% extends "index.html" %}
+{% load i18n versioned_assets %}
+
+{% block content %}
+<link rel="stylesheet" href="{% versioned_static 'klockin/document-export.css' %}">
+<div class="doc-export">
+    <a class="doc-export-back" href="{{ back }}">← {{ back_label }}</a>
+    <header class="doc-export-heading">
+        <div>
+            <h1>{{ title }}</h1>
+            <p>{% trans "Choose how your PDF should look, then preview it before downloading." %}</p>
+        </div>
+        <a class="doc-export-button" href="{{ download_url }}">{% trans "Download PDF" %}</a>
+    </header>
+
+    <div class="doc-export-layout">
+        <section class="doc-export-panel" aria-labelledby="document-layout">
+            <h2 id="document-layout">{% trans "Layout and contents" %}</h2>
+            {% if error %}<p class="doc-export-error" role="alert">{{ error }}</p>{% endif %}
+            <form method="get" action="{{ action }}" class="doc-export-form">
+                <input name="configure" type="hidden" value="1">
+                {% if kind == "payslip" %}
+                    <label for="document-template">{% trans "Payslip template" %}</label>
+                    <select id="document-template" name="template">
+                        {% for value, label in choices.template.items %}
+                            <option value="{{ value }}"{% if value == options.template %} selected{% endif %}>{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                {% else %}
+                    <label for="document-month">{% trans "DTR month" %}</label>
+                    <input id="document-month" type="month" name="month" value="{{ month }}" required>
+                    <label for="document-dtr-layout">{% trans "Time columns" %}</label>
+                    <select id="document-dtr-layout" name="layout">
+                        {% for value, label in choices.layout.items %}
+                            <option value="{{ value }}"{% if value == options.layout %} selected{% endif %}>{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                    <label for="document-orientation">{% trans "Paper" %}</label>
+                    <select id="document-orientation" name="orientation">
+                        {% for value, label in choices.orientation.items %}
+                            <option value="{{ value }}"{% if value == options.orientation %} selected{% endif %}>{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                {% endif %}
+                <fieldset class="doc-export-options">
+                    <legend>{% trans "Include in the PDF" %}</legend>
+                    <input name="show_company" type="hidden" value="0">
+                    <label><input name="show_company" type="checkbox" value="1"{% if options.show_company %} checked{% endif %}> {% trans "Company header" %}</label>
+                    <input name="show_notes" type="hidden" value="0">
+                    <label><input name="show_notes" type="checkbox" value="1"{% if options.show_notes %} checked{% endif %}> {% trans "Notes" %}</label>
+                    {% if kind == "dtr" %}
+                        <input name="show_undertime" type="hidden" value="0">
+                        <label><input name="show_undertime" type="checkbox" value="1"{% if options.show_undertime %} checked{% endif %}> {% trans "Undertime columns" %}</label>
+                    {% endif %}
+                </fieldset>
+                <button class="doc-export-button" type="submit">{% trans "Update preview" %}</button>
+            </form>
+
+            <form method="post" action="{{ save_url }}" class="doc-export-form doc-export-save">
+                {% csrf_token %}
+                {% for name, value in query.items %}<input name="{{ name }}" type="hidden" value="{{ value }}">{% endfor %}
+                <label for="document-note">{% trans "Personal export note" %}</label>
+                <textarea id="document-note" name="note" maxlength="{{ note_limit }}" rows="2" aria-describedby="document-note-help">{{ options.note }}</textarea>
+                <p id="document-note-help">{% trans "Saved preferences apply to your account on web and mobile." %}</p>
+                <button class="doc-export-button doc-export-secondary" type="submit">{% trans "Save this preview as my default" %}</button>
+            </form>
+        </section>
+
+        <section class="doc-export-preview" aria-labelledby="document-preview">
+            <header>
+                <h2 id="document-preview">{% trans "PDF preview" %}</h2>
+                <a href="{{ preview_url }}" target="_blank" rel="noopener">{% trans "Open PDF" %} ↗</a>
+            </header>
+            <iframe src="{{ preview_url }}" title="{% trans 'PDF preview' %}"></iframe>
+        </section>
+    </div>
+</div>
+{% endblock %}

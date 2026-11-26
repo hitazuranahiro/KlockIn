@@ -2,9 +2,13 @@ import gettext
 from collections import defaultdict
 
 from django.contrib.auth.decorators import permission_required
-from django.shortcuts import render
+from django.core.exceptions import ValidationError
+from django.shortcuts import get_object_or_404, render
 from django.utils.decorators import method_decorator
 from django.utils.translation import gettext_lazy as _
+from rest_framework import status
+from rest_framework.authentication import SessionAuthentication
+from rest_framework.negotiation import DefaultContentNegotiation
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -13,6 +17,7 @@ from base.backends import ConfiguredEmailBackend
 from base.methods import eval_validate, filtersubordinates
 from klockin_api.api_methods.base.methods import reject_reason_from
 from klockin_api.api_methods.base.pagination import HorillaPageNumberPagination
+from klockin_api.authentication import TenantScopedJWTAuthentication
 from payroll.filters import (
     AllowanceFilter,
     ContractFilter,
@@ -29,6 +34,7 @@ from payroll.models.models import (
     ReimbursementrequestComment,
 )
 from payroll.models.tax_models import TaxBracket
+from payroll.payslip_document import render_payslip_document
 from payroll.threadings.mail import MailSendThread
 from payroll.views.views import payslip_pdf
 
@@ -452,29 +458,9 @@ class TaxBracketView(APIView):
         return Response(status=200)
 
 
-from datetime import datetime
-
-from django.conf import settings
-from django.http import Http404, HttpResponse
-from django.shortcuts import get_object_or_404
-from rest_framework import status
-from rest_framework.authentication import SessionAuthentication
-from rest_framework.negotiation import DefaultContentNegotiation
-
-# DRF / Simple JWT imports
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.views import APIView
-
-from klockin_api.authentication import TenantScopedJWTAuthentication
-
-# Your models / helpers
-from payroll.models.models import Company, EmployeeWorkInformation
-from payroll.models.tax_models import PayrollSettings
-from payroll.views.component_views import filter_payslip
-from payroll.views.views import equalize_lists_length, generate_payslip_pdf
-
-
 def _wants_payslip_pdf(request):
+    if request.query_params.get("preview") == "1" or request.query_params.get("download") == "1":
+        return True
     requested = request.query_params.get("format", "").lower()
     if requested:
         return requested == "pdf"
@@ -491,7 +477,7 @@ class PayslipContentNegotiation(DefaultContentNegotiation):
 
 class PayslipPDFAPIView(APIView):
     """
-    GET /api/payslip/<payslip_id>/?format=pdf
+    GET /api/v1/payroll/payslip-download/<payslip_id>?format=pdf
     Auth:
       - Accepts SimpleJWT Bearer token (Authorization: Bearer <token>)
       - Also accepts session auth (browser) when available
@@ -516,86 +502,12 @@ class PayslipPDFAPIView(APIView):
                 status=status.HTTP_403_FORBIDDEN,
             )
 
-        # employee & company date format resolution
-        employee = user.employee_get  # keep same accessor you used
-        info = EmployeeWorkInformation.objects.filter(employee_id=employee)
-        if info.exists():
-            # take the last one (mirrors your loop behavior)
-            employee_company = info.last().company_id
-            emp_company = Company.objects.filter(company=employee_company).first()
-            date_format = (
-                emp_company.date_format
-                if emp_company and emp_company.date_format
-                else "MMM. D, YYYY"
+        try:
+            return render_payslip_document(
+                request,
+                payslip,
+                html=not _wants_payslip_pdf(request),
+                filename=f"payslip-{id}.pdf",
             )
-        else:
-            date_format = "MMM. D, YYYY"
-
-        # compose data from payslip (same as original)
-        data = (
-            payslip.pay_head_data.copy()
-            if isinstance(payslip.pay_head_data, dict)
-            else {}
-        )
-        start_date_str = data.get("start_date")
-        end_date_str = data.get("end_date")
-
-        if not start_date_str or not end_date_str:
-            return Response(
-                {"detail": _("Payslip missing start_date or end_date")},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
-        # parse dates
-        start_date = datetime.strptime(start_date_str, "%Y-%m-%d").date()
-        end_date = datetime.strptime(end_date_str, "%Y-%m-%d").date()
-
-        month_start_name = start_date.strftime("%B %d, %Y")
-        month_end_name = end_date.strftime("%B %d, %Y")
-
-        # formatted date for chosen company format (safe default if not found)
-        formatted_start_date = start_date.strftime(
-            settings.KLOCKIN_DATE_FORMATS.get(date_format, "%b. %d, %Y")
-        )
-        formatted_end_date = end_date.strftime(
-            settings.KLOCKIN_DATE_FORMATS.get(date_format, "%b. %d, %Y")
-        )
-
-        # fill template context like original view
-        data["month_start_name"] = month_start_name
-        data["month_end_name"] = month_end_name
-        data["total_calendar_days"] = (end_date - start_date).days + 1
-        data["formatted_start_date"] = formatted_start_date
-        data["formatted_end_date"] = formatted_end_date
-        data["employee"] = payslip.employee_id
-        data["payslip"] = payslip
-        data["json_data"] = data.copy()
-        data["json_data"]["employee"] = payslip.employee_id.id
-        data["json_data"]["payslip"] = payslip.id
-        data["instance"] = payslip
-        data["currency"] = PayrollSettings.currency_for_selected_company()
-        data["all_deductions"] = []
-        for deduction_list in [
-            data.get("basic_pay_deductions", []),
-            data.get("gross_pay_deductions", []),
-            data.get("pretax_deductions", []),
-            data.get("post_tax_deductions", []),
-            data.get("tax_deductions", []),
-            data.get("net_deductions", []),
-        ]:
-            data["all_deductions"].extend(deduction_list)
-
-        data["all_allowances"] = data.get("allowances", []).copy()
-        # equalize lengths (your helper)
-        equalize_lists_length(data.setdefault("allowances", []), data["all_deductions"])
-        data["zipped_data"] = zip(data["allowances"], data["all_deductions"])
-        data["host"] = request.get_host()
-        data["protocol"] = "https" if request.is_secure() else "http"
-        data["company"] = Company.objects.filter(hq=True).first()
-
-        return generate_payslip_pdf(
-            "payroll/payslip/payslip_pdf.html",
-            data,
-            html=not _wants_payslip_pdf(request),
-            filename=f"payslip-{id}.pdf",
-        )
+        except ValidationError as error:
+            return Response({"detail": error.messages[0]}, status=status.HTTP_400_BAD_REQUEST)

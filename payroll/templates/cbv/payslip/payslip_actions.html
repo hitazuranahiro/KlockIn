@@ -2,19 +2,14 @@
 
 <div class="oh-sticky-table__right" onclick="event.stopPropagation();">
 	<div class="flex items-center justify-center gap-1">
-		<form
-			action="{% url 'payslip-pdf' instance.id %}"
-			method="post"
+		<a
+			href="{% url 'payslip-pdf' instance.id %}?configure=1"
+			title="{% trans 'Preview and download payslip' %}"
+			aria-label="{% trans 'Preview and download payslip' %}"
+			class="oh-btn oh-btn--light-bkg oh-btn--sq-sm"
 		>
-			{% csrf_token %}
-			<button
-				type="submit"
-				title="{% trans 'Download' %}"
-				class="oh-btn oh-btn--light-bkg oh-btn--sq-sm"
-			>
-				<ion-icon name="download"></ion-icon>
-			</button>
-		</form>
+			<ion-icon name="download"></ion-icon>
+		</a>
 		{% if perms.payroll.add_payslip %}
 			<button
 				hx-confirm="{% trans 'Do you want to sent the payslip by mail?' %}"

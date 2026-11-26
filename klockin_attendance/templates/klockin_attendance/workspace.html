@@ -15,13 +15,8 @@
             <form class="kd-export" action="{% url 'klockin-monthly-dtr' profile.pk %}" method="get">
                 <div><label for="dtr-month">DTR month</label>
                     <input id="dtr-month" name="month" type="month" value="{{ month_value }}" required></div>
-                <div><label for="dtr-layout">Layout</label>
-                    <select id="dtr-layout" name="layout">
-                        <option value="am-pm">AM / PM</option>
-                        <option value="first-last">First in / Last out</option>
-                    </select>
-                </div>
-                <button class="kd-action secondary" type="submit">Download my DTR <span aria-hidden="true">↓</span></button>
+                <input type="hidden" name="configure" value="1">
+                <button class="kd-action secondary" type="submit">{% trans "Preview and export my DTR" %} <span aria-hidden="true">→</span></button>
             </form>
         {% endif %}
     </header>
@@ -123,7 +118,7 @@
                         <th scope="row">{{ work.employee_id.get_full_name }}</th>
                         <td>{{ work.date|date:"M j, Y" }}</td>
                         <td>{{ work.get_work_record_type_display }}</td>
-                        <td><a href="{% url 'klockin-monthly-dtr' work.employee_id_id %}?month={{ work.date|date:'Y-m' }}">Download DTR</a></td>
+                        <td><a href="{% url 'klockin-monthly-dtr' work.employee_id_id %}?month={{ work.date|date:'Y-m' }}&amp;configure=1">Preview DTR</a></td>
                     </tr>
                 {% empty %}<tr><td colspan="4">No absences in this date range.</td></tr>{% endfor %}
                 </tbody>
@@ -142,7 +137,7 @@
                             <div class="kd-evidence-row">{{ punch.get_punch_type_display }} · {{ punch.get_source_display }}
                             {% if can_view_evidence %}{% include "klockin_attendance/evidence.html" %}{% endif %}</div>
                         {% empty %}Attendance entry{% endfor %}</td>
-                        <td><a href="{% url 'klockin-monthly-dtr' day.employee_id_id %}?month={{ day.attendance_date|date:'Y-m' }}">Download DTR</a></td>
+                        <td><a href="{% url 'klockin-monthly-dtr' day.employee_id_id %}?month={{ day.attendance_date|date:'Y-m' }}&amp;configure=1">Preview DTR</a></td>
                     </tr>
                 {% empty %}<tr><td colspan="7">No attendance records in this date range.</td></tr>{% endfor %}
                 </tbody>

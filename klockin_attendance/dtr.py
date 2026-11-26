@@ -8,7 +8,7 @@ from cryptography.fernet import InvalidToken
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import Permission
-from django.core.exceptions import PermissionDenied
+from django.core.exceptions import PermissionDenied, ValidationError
 from django.core.paginator import Paginator
 from django.db import transaction
 from django.db.models import Count, F, IntegerField, Q, Sum, Value
@@ -25,6 +25,7 @@ from attendance.views.views import attendance_validate
 from base.auth_backends import company_scoped_active
 from base.methods import has_export_access
 from employee.models import Employee
+from klockin.export_preferences import resolve_export_options
 from klockin.klockin_middlewares import get_selected_company
 
 from .dtr_pdf import render_dtr_pdf
@@ -654,20 +655,39 @@ def attendance_detail(request, pk):
 @never_cache
 def monthly_dtr(request, employee_id):
     employee = get_object_or_404(_scope(request.user), pk=employee_id)
-    month_text = request.GET.get("month", timezone.localdate().strftime("%Y-%m"))
     try:
-        month = datetime.strptime(month_text, "%Y-%m").date()
-    except ValueError:
+        month = requested_dtr_month(request.GET)
+        if request.GET.get("configure") == "1":
+            from klockin.export_views import render_export_setup
+
+            return render_export_setup(
+                request, "dtr", employee.pk, month=month.strftime("%Y-%m")
+            )
+        return monthly_dtr_document(request.user, employee, month, request.GET)
+    except ValidationError as error:
+        if request.GET.get("preview") == "1":
+            return HttpResponseBadRequest(error.messages[0], content_type="text/plain")
         return render(
             request,
             "klockin_attendance/workspace.html",
             {
-                "report_error": "Choose a valid month.",
+                "report_error": error.messages[0],
                 "profile": _own_profile(request.user),
             },
             status=400,
         )
 
+
+def requested_dtr_month(query):
+    month_text = query.get("month", timezone.localdate().strftime("%Y-%m"))
+    try:
+        return datetime.strptime(month_text, "%Y-%m").date()
+    except ValueError as error:
+        raise ValidationError("Choose a valid month.") from error
+
+
+def monthly_dtr_document(user, employee, month, query):
+    options = resolve_export_options(user, "dtr", query)
     last_day = monthrange(month.year, month.month)[1]
     month_end = month.replace(day=last_day)
     rows = {
@@ -676,11 +696,19 @@ def monthly_dtr(request, employee_id):
             employee_id=employee, attendance_date__range=(month, month_end)
         )
     }
-    use_first_last = request.GET.get("layout") == "first-last"
+    use_first_last = options["layout"] == "first-last"
     intervals = {}
     if not use_first_last:
         for interval in AttendanceActivity.objects.filter(
             employee_id=employee, attendance_date__range=(month, month_end)
         ).order_by("attendance_date", "clock_in_date", "clock_in"):
             intervals.setdefault(interval.attendance_date.day, []).append(interval)
-    return render_dtr_pdf(employee, month, last_day, rows, intervals, use_first_last)
+    company = employee.get_company() if options["show_company"] else None
+    return render_dtr_pdf(
+        employee, month, last_day, rows, intervals, use_first_last,
+        orientation=options["orientation"],
+        company_name=company.company if company else "",
+        show_undertime=options["show_undertime"],
+        note=options["note"] if options["show_notes"] else "",
+        preview=query.get("preview") == "1",
+    )

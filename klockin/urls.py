@@ -27,6 +27,7 @@ from django.views.generic import RedirectView
 from django.views.i18n import JavaScriptCatalog
 
 import notifications.urls
+from klockin.export_views import save_document_preferences
 from klockin_attendance.break_views import web_break
 from klockin_crumbs.views import breadcrumbs_fragment
 
@@ -149,6 +150,7 @@ urlpatterns = [
     ),
     path("i18n/", include("django.conf.urls.i18n")),
     path("jsi18n/", JavaScriptCatalog.as_view(), name="javascript-catalog"),
+    path("exports/<str:kind>/<int:pk>/preferences/", save_document_preferences, name="save-export-preferences"),
     path("health/", health_check),
     path("ready/", readiness_check),
     path("metrics/", metrics),
