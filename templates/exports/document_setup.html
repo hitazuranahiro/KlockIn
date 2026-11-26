@@ -3,7 +3,7 @@
 
 {% block content %}
 <link rel="stylesheet" href="{% versioned_static 'klockin/document-export.css' %}">
-<div class="doc-export">
+<div class="doc-export" data-preserve-query-string>
     <a class="doc-export-back" href="{{ back }}">← {{ back_label }}</a>
     <header class="doc-export-heading">
         <div>

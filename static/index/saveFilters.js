@@ -48,6 +48,7 @@ function runWhenHtmxIdle(callback) {
 
 function clearQueryString() {
   runWhenHtmxIdle(function () {
+    if (document.querySelector("[data-preserve-query-string]")) return;
     var url = window.location.href;
     var newUrl = url.split('?')[0];
     history.replaceState(null, '', newUrl);

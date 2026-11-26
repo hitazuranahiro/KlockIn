@@ -1,4 +1,4 @@
-{% load static %}
+{% load static versioned_assets %}
 {% load i18n %}
 {% load klockinfilters %}
 {% load basefilters %}
@@ -236,7 +236,7 @@
     </script>
     <!-- this is the master js  -->
     <script src="{% static '/index/index.js' %}?v=40"></script>
-    <script src="{% static '/index/saveFilters.js' %}"></script>
+    <script src="{% versioned_static 'index/saveFilters.js' %}"></script>
     <script src="{% static 'build/js/htmxSelect2.js' %}"></script>
     <script src="{% static 'build/js/summernote-lite.min.js' %}"></script>
     <script src="{% static '/index/country.js' %}"></script>
