@@ -1,4 +1,4 @@
-{% load static i18n klockinfilters %}
+{% load static versioned_assets i18n klockinfilters %}
 {% get_hq_company as hq_company %}
 <!DOCTYPE html>
 <html lang="en">
@@ -27,7 +27,7 @@
             rel="stylesheet"
             href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
         >
-        <link href="{% static 'klockin_theme/assets/css/tailwind.css' %}" rel="stylesheet">
+        <link href="{% versioned_static 'klockin_theme/assets/css/tailwind.css' %}" rel="stylesheet">
         <link rel="stylesheet" href="/static/klockin_theme/assets/css/global.css">
         <link rel="stylesheet" href="/static/klockin_theme/assets/css/v1_styles.css">
         <link
@@ -35,33 +35,7 @@
             rel="stylesheet"
         >
         {% get_company as theme_obj %}
-        <script src='{% static "klockin_theme/assets/js/tailwindcdn.js" %}'></script>
-        <script>
-            window.tailwind.config = {
-                theme: {
-                    colors: {
-                        white: '#FFFFFF',
-                        primary: {
-                            50:  '{{ theme_obj.primary_50  | default:"#f6f6f6" }}',
-                            100: '{{ theme_obj.primary_100 | default:"#FFF5F1" }}',
-                            200: '{{ theme_obj.primary_200 | default:"#FEF6F5" }}',
-                            600: '{{ theme_obj.primary_600 | default:"#E54F38" }}',
-                            700: '{{ theme_obj.primary_700 | default:"#ce4732" }}',
-                            800: '{{ theme_obj.primary_800 | default:"#AC3B2A" }}',
-                        },
-                        dark: {
-                            100: '{{ theme_obj.dark_100 | default:"#A8A8A8" }}',
-                            200: '{{ theme_obj.dark_200 | default:"#515151" }}',
-                        },
-                        secondary: {
-                            50:  '{{ theme_obj.secondary_50  | default:"#f8fafc" }}',
-                            200: '{{ theme_obj.secondary_200 | default:"#e2e8f0" }}',
-                        },
-                        success: { light: "#86efac", DEFAULT: "#22c55e", dark: "#15803d" },
-                    },
-                },
-            };
-        </script>
+        {% include "klockin_theme/components/tailwind_theme.html" %}
     </head>
     <body class="bg-secondary-50 font-['Plus_Jakarta_Sans',_sans-serif] min-h-screen flex flex-col">
 

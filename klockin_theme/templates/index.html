@@ -1,4 +1,4 @@
-{% load static %}
+{% load static versioned_assets %}
 {% load i18n %}
 {% load klockinfilters %}
 {% get_company as theme_obj %}
@@ -33,15 +33,6 @@
             href="{% if white_label_company.icon %}{{white_label_company.icon.url}} {% else %}{% static 'favicons/favicon-16x16.png' %}{% endif %}"
         >
 
-        {% comment %} defer, not removed: tailwind.css below is a periodically
-           re-exported snapshot, not a build-pipeline output kept in sync on
-           every template change, so this runtime JIT compiler is still the
-           source of truth for any utility class added since that snapshot.
-           `defer` only delays execution past HTML parsing (this compiler
-           scans the DOM via MutationObserver, so it doesn't need to run
-           before other content loads) -- it doesn't change what gets
-           styled. {% endcomment %}
-        <script src='{% static "klockin_theme/assets/js/tailwindcdn.js" %}' defer></script>
         {% include "klockin_theme/components/header_scripts.html" %}
 
         <link
@@ -56,7 +47,7 @@
             href="{% static 'cdn/googleapi/css/inter-font-style.css' %}"
             rel="stylesheet"
         >
-        <link href="{% static 'klockin_theme/assets/css/tailwind.css' %}" rel="stylesheet">
+        <link href="{% versioned_static 'klockin_theme/assets/css/tailwind.css' %}" rel="stylesheet">
         <link href="{% static 'cdn/select2/css/select2.min.css' %}" rel="stylesheet">
 
         <script src="{% static 'klockin_theme/assets/js/global.js' %}?v=2"></script>
@@ -178,15 +169,7 @@
                     background: {{ theme.primary_600|default:"#0056D6" }};
                 }
 
-                /* ── Theme-aware Tailwind primary-* utilities ─────────────────────
-                   tailwind.css compiles every primary-* utility to the STATIC
-                   default red, so any view using `text-primary-600`,
-                   `bg-primary-600`, `border-primary-600`, etc. ignored the
-                   selected company theme. Re-map each compiled utility to the
-                   chosen theme shade. This block loads after tailwind.css and
-                   global.css, so it wins by source order at equal specificity —
-                   deliberately WITHOUT !important, so state utilities layered on
-                   top (e.g. hover:text-white, hover:bg-*) still win on hover. */
+                /* Keep these established workspace overrides after the shared compiled utilities. */
                 .border-primary-300 { border-color: {{ theme.primary_300|default:"#D6E7FD" }}; }
                 .border-primary-500 { border-color: {{ theme.primary_500|default:"#8CB8F2" }}; }
                 .border-primary-600 { border-color: {{ theme.primary_600|default:"#0056D6" }}; }
@@ -204,12 +187,7 @@
                 .hover\:text-primary-600:hover { color: {{ theme.primary_600|default:"#0056D6" }}; }
                 .focus\:border-primary-600:focus { border-color: {{ theme.primary_600|default:"#0056D6" }}; }
 
-                /* Quick filter pills (Offline/Online etc., generic/quick_actions.html)
-                   submit and get swapped out of the DOM immediately on click, so a
-                   Tailwind focus:/active: utility class often loses the timing race
-                   against that swap and never paints. Plain :focus/:active here
-                   applies unconditionally rather than depending on the class being
-                   picked up before the element is replaced. */
+                /* Keep focus and active styling while quick filters submit and swap. */
                 .oh-row-status-indication:focus,
                 .oh-row-status-indication:active {
                     outline: none;

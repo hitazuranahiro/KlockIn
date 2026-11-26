@@ -1,4 +1,4 @@
-.PHONY: help dev prod build stop logs logs-web shell clean db-shell status restart makemessages compilemessages test-smoke test-unit test-cov
+.PHONY: tailwind-css help dev prod build stop logs logs-web shell clean db-shell status restart makemessages compilemessages test-smoke test-unit test-cov
 
 COMPOSE ?= docker compose
 COMPOSE_PROD ?= $(COMPOSE) -f docker-compose.yml -f docker-compose.prod.yml
@@ -17,6 +17,10 @@ prod: ## Start production overlay (no source bind-mount; requires .env)
 
 build: ## Build images
 	$(COMPOSE) build
+
+
+tailwind-css: ## Compile the local Tailwind stylesheet
+	npm exec --yes --package=tailwindcss@3.4.19 -- tailwindcss --config klockin_theme/tailwind.config.cjs --input klockin_theme/static/cdn/tailwind/css/input.css --output klockin_theme/static/klockin_theme/assets/css/tailwind.css
 
 stop: ## Stop services (includes prod overlay / nginx)
 	$(COMPOSE_PROD) down
